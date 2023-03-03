@@ -27,6 +27,7 @@ class ADirectionalLight;
 //		 with the above compass
 ////
 
+// Flipbook direction enum
 UENUM (BlueprintType)
 enum class EEightDir : uint8 {
   North,
@@ -40,6 +41,7 @@ enum class EEightDir : uint8 {
   EightDirMax
 };
 
+// Flipbook direction strings for debugging purposes
 const FString DirectionStrings[] = {
   TEXT ("North"),
   TEXT ("Northeast"),
@@ -52,6 +54,8 @@ const FString DirectionStrings[] = {
   TEXT ("EightDirMax")
 };
 
+// Flipbook speed enum
+UENUM (BlueprintType)
 enum class EEightDirFlipbookSpeeds : uint8 {
   Stationary,
   Slow,
@@ -59,6 +63,7 @@ enum class EEightDirFlipbookSpeeds : uint8 {
   SpeedMax
 };
 
+// Flipbook speed strings for debugging purposes
 const FString FlipbookSpeedStrings[] = {
   TEXT ("Stationary"),
   TEXT ("Slow"),
@@ -66,6 +71,7 @@ const FString FlipbookSpeedStrings[] = {
   TEXT ("EightDirFlipbookTypeMax")
 };
 
+// The following macros are used for the eight direction flipbook system
 #define EIGHT_DIR_IS_NORTH(Yaw) (Yaw >= -22.5f && Yaw < 22.5f)
 #define EIGHT_DIR_IS_NORTHEAST(Yaw) (Yaw >= 22.5f && Yaw < 67.5f)
 #define EIGHT_DIR_IS_EAST(Yaw) (Yaw >= 67.5f && Yaw <= 112.5f)
@@ -75,12 +81,16 @@ const FString FlipbookSpeedStrings[] = {
 #define EIGHT_DIR_IS_WEST(Yaw) (Yaw > -112.5f && Yaw <= -67.5f)
 #define EIGHT_DIR_IS_NORTHWEST(Yaw) (Yaw > -67.5f && Yaw <= -22.5f)
 
+// The following macros are used for the four direction flipbook system
 #define FOUR_DIR_IS_NORTH(Yaw) (Yaw >= -45.0f && Yaw < 45.0f)
 #define FOUR_DIR_IS_EAST(Yaw) (Yaw >= 45.0f && Yaw <= 135.0f)
 #define FOUR_DIR_IS_SOUTH(Yaw) (Yaw > 135.0 || Yaw <= -135.0)
 #define FOUR_DIR_IS_WEST(Yaw) (Yaw > -135.0 && Yaw <= -45.0)
 
+// Default flipbook path to use to ensure a NULL access does not occur
 #define DEFAULT_FLIPBOOK_PATH TEXT ("/Game/Flipbooks/DefaultFlipbook/DefaultFlipbook.DefaultFlipbook")
+
+// Default flipbook speed
 #define DEFAULT_FLIPBOOK_SLOW_SPEED 150.0f
 
 // Float representing a buffer for the slow speed to prevent jittering
@@ -114,16 +124,27 @@ public:
   UEightDirActorComponent ();
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-    EEightDir GetDirection (float Yaw);
+    EEightDir GetDirection (
+    float Yaw
+    );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-    void UpdateDisplayAndShadowFlipbooks (bool ForceUpdate = false, float SpeedOverride = -1.0f);
+    void UpdateDisplayAndShadowFlipbooks (
+    bool ForceUpdate = false,
+    float SpeedOverride = -1.0f
+    );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-    void UpdateDisplayFlipbook (bool ForceUpdate = false, float SpeedOverride = -1.0f);
+    void UpdateDisplayFlipbook (
+    bool ForceUpdate = false, 
+    float SpeedOverride = -1.0f
+    );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-    void UpdateShadowFlipbook (bool ForceUpdate = false, float SpeedOverride = -1.0f);
+    void UpdateShadowFlipbook (
+    bool ForceUpdate = false,
+    float SpeedOverride = -1.0f
+    );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void LoadFlipbooksFromDirectory (
@@ -189,12 +210,15 @@ private:
   // Reference to the shadow flipbook component
   TObjectPtr <UPaperFlipbookComponent> ShadowFlipbook;
 
+  // Update which flipbook is displayed based on the current speed and direction
   void UpdateFlipbook (
     EEightDir DisplayFlipboookDirection,
     EEightDir ShadowFlipboookDirection,
     float Speed
   );
 
-  EEightDir GetFlipbookDirection (FRotator ControlRotation, FRotator ComponentRotation);
+  // Given the rotation of the component and the rotation of some control, return the flipbook facing the
+  // dimensionally correct direction
+  EEightDir GetFlipbookDirection (FRotator ControlRotation);
 
 };

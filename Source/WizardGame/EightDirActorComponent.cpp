@@ -15,7 +15,7 @@ UEightDirActorComponent::UEightDirActorComponent () {
   PrimaryComponentTick.bCanEverTick = false;
 
   BasicFlipbooks.SetNum (static_cast<uint8>(EEightDir::EightDirMax) * static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax));
-  
+
   // Set all flipbooks to the default
   static ConstructorHelpers::FObjectFinder<UPaperFlipbook> DefaultFlipbook (DEFAULT_FLIPBOOK_PATH);
   if (DefaultFlipbook.Succeeded ()) {
@@ -199,13 +199,17 @@ void UEightDirActorComponent::BeginPlay () {
   }
 
   // Populate the "sun" directional light global
-  SunGlobal = Cast<ADirectionalLight> (UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ()));
+  SunGlobal = Cast<ADirectionalLight> (
+    UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ())
+    );
   if (!SunGlobal) {
     UE_LOG (LogTemp, Warning, TEXT ("Unable to initialize SunGlobal"))
   }
 }
 
-EEightDir UEightDirActorComponent::GetDirection (float Yaw) {
+EEightDir UEightDirActorComponent::GetDirection (
+  float Yaw
+) {
   if (bIsEightDirGlobal) {
     if EIGHT_DIR_IS_NORTH (Yaw) {
       return EEightDir::North;
@@ -237,11 +241,18 @@ EEightDir UEightDirActorComponent::GetDirection (float Yaw) {
   }
 }
 
-EEightDir UEightDirActorComponent::GetFlipbookDirection (FRotator ControlRotation, FRotator ComponentRotation) {
-  return GetDirection (UKismetMathLibrary::NormalizedDeltaRotator (ComponentRotation, ControlRotation).Yaw);
+EEightDir UEightDirActorComponent::GetFlipbookDirection (
+  FRotator ControlRotation
+) {
+  return GetDirection (
+    UKismetMathLibrary::NormalizedDeltaRotator (RootComponentGlobal->GetComponentRotation (), ControlRotation).Yaw
+  );
 }
 
-void UEightDirActorComponent::UpdateDisplayFlipbook (bool ForceUpdate, float SpeedOverride) {
+void UEightDirActorComponent::UpdateDisplayFlipbook (
+  bool ForceUpdate,
+  float SpeedOverride
+) {
 
   if (DisplayFlipbook && (ForceUpdate || DisplayFlipbook->WasRecentlyRendered (0.1f))) {
     FRotator ControlRotation;
@@ -255,9 +266,11 @@ void UEightDirActorComponent::UpdateDisplayFlipbook (bool ForceUpdate, float Spe
     if (CameraManagerGlobal) {
       // Rotate the display flipbook
       ControlRotation = CameraManagerGlobal->GetCameraRotation ();
-      DisplayFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
+      DisplayFlipbook->SetWorldRotation (
+        FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
+      );
       UpdateFlipbook (
-        GetFlipbookDirection (ControlRotation, RootComponentGlobal->GetComponentRotation ()),
+        GetFlipbookDirection (ControlRotation),
         EEightDir::EightDirMax,
         SpeedOverride >= 0.0f ? SpeedOverride : PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ()
       );
@@ -266,7 +279,10 @@ void UEightDirActorComponent::UpdateDisplayFlipbook (bool ForceUpdate, float Spe
   }
 }
 
-void UEightDirActorComponent::UpdateShadowFlipbook (bool ForceUpdate, float SpeedOverride) {
+void UEightDirActorComponent::UpdateShadowFlipbook (
+  bool ForceUpdate,
+  float SpeedOverride
+) {
 
   if (ShadowFlipbook && (ForceUpdate || ShadowFlipbook->WasRecentlyRendered (0.1f))) {
     FRotator ControlRotation;
@@ -276,7 +292,9 @@ void UEightDirActorComponent::UpdateShadowFlipbook (bool ForceUpdate, float Spee
 
       // BEEBE TODO: Remove?
       if (!SunGlobal) {
-        SunGlobal = Cast<ADirectionalLight> (UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ()));
+        SunGlobal = Cast<ADirectionalLight> (
+          UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ())
+          );
       }
 
       if (SunGlobal) {
@@ -285,7 +303,7 @@ void UEightDirActorComponent::UpdateShadowFlipbook (bool ForceUpdate, float Spee
         ShadowFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
         UpdateFlipbook (
           EEightDir::EightDirMax,
-          GetFlipbookDirection (ControlRotation, RootComponentGlobal->GetComponentRotation ()),
+          GetFlipbookDirection (ControlRotation),
           SpeedOverride >= 0.0f ? SpeedOverride : PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ()
         );
       }
@@ -296,7 +314,10 @@ void UEightDirActorComponent::UpdateShadowFlipbook (bool ForceUpdate, float Spee
   }
 }
 
-void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (bool ForceUpdate, float SpeedOverride) {
+void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
+  bool ForceUpdate,
+  float SpeedOverride
+) {
   if (DisplayFlipbook && (ForceUpdate || DisplayFlipbook->WasRecentlyRendered (0.1f))) {
     EEightDir ShadowFlipbookDirection = EEightDir::North;
     EEightDir DisplayFlipbookDirection = EEightDir::North;
@@ -310,21 +331,27 @@ void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (bool ForceUpdate,
     if (CameraManagerGlobal) {
       // Rotate the display flipbook
       ControlRotation = CameraManagerGlobal->GetCameraRotation ();
-      DisplayFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
-      DisplayFlipbookDirection = GetFlipbookDirection (ControlRotation, RootComponentGlobal->GetComponentRotation ());
+      DisplayFlipbook->SetWorldRotation (
+        FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
+      );
+      DisplayFlipbookDirection = GetFlipbookDirection (ControlRotation);
     }
 
     if (ShadowFlipbook && bCastShadowGlobal) {
       // BEEBE TODO: Remove?
       if (!SunGlobal) {
-        SunGlobal = Cast<ADirectionalLight> (UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ()));
+        SunGlobal = Cast<ADirectionalLight> (
+          UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ())
+          );
       }
 
       if (SunGlobal) {
         // Rotate the shadow flipbook
         ControlRotation = SunGlobal->GetActorRotation ();
-        ShadowFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
-        ShadowFlipbookDirection = GetFlipbookDirection (ControlRotation, RootComponentGlobal->GetComponentRotation ());
+        ShadowFlipbook->SetWorldRotation (
+          FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
+        );
+        ShadowFlipbookDirection = GetFlipbookDirection (ControlRotation);
       }
     }
 
