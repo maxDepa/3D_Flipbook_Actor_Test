@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EightDirFlipbookInterface.h"
 #include "FloraInterface.h"
 #include "EightDirActorComponent.h"
 #include "Herb.generated.h"
@@ -9,7 +8,7 @@
 class UCapsuleComponent;
 
 UCLASS ()
-class WIZARDGAME_API AHerb : public AActor, public IFloraInterface, public IEightDirFlipbookInterface
+class WIZARDGAME_API AHerb : public AActor, public IFloraInterface
 {
 	GENERATED_BODY ()
 

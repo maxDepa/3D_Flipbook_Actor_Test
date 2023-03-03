@@ -15,7 +15,7 @@ UEightDirActorComponent::UEightDirActorComponent () {
   PrimaryComponentTick.bCanEverTick = false;
 
   BasicFlipbooks.SetNum (static_cast<uint8>(EEightDir::EightDirMax) * static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax));
-
+  
   // Set all flipbooks to the default
   static ConstructorHelpers::FObjectFinder<UPaperFlipbook> DefaultFlipbook (DEFAULT_FLIPBOOK_PATH);
   if (DefaultFlipbook.Succeeded ()) {
@@ -27,21 +27,37 @@ UEightDirActorComponent::UEightDirActorComponent () {
   }
 }
 
-void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directory, bool Stationary, bool Slow, bool Fast, bool TwoFlipbookRotation) {
+void UEightDirActorComponent::LoadFlipbooksFromDirectory (
+  const FString &Directory,
+  bool Stationary,
+  bool Slow,
+  bool Fast,
+  bool IsEightDir,
+  bool TwoFlipbookRotation
+) {
 
   bStationaryGlobal = Stationary;
   bSlowGlobal = Slow;
   bFastGlobal = Fast;
+  bIsEightDirGlobal = IsEightDir;
 
   FString SearchTerm;
+  int step = bIsEightDirGlobal ? 1 : 2;
+
 
   if (!TwoFlipbookRotation) {
+    FString DirectoryWithNoTrailingSlash = Directory;
+
+    if (DirectoryWithNoTrailingSlash.EndsWith ("/")) {
+      DirectoryWithNoTrailingSlash.RemoveAt (DirectoryWithNoTrailingSlash.Len () - 1);
+    }
+
     if (Slow) {
-      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
-        SearchTerm = *FString::Printf (TEXT ("%s/slow_%s.slow_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
+        SearchTerm = *FString::Printf (TEXT ("%s/slow_%s.slow_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
         if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Slow))] = Flipbook.Object;
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Slow))] = Flipbook.Object;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -49,11 +65,11 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directo
     }
 
     if (Fast) {
-      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
-        SearchTerm = *FString::Printf (TEXT ("%s/fast_%s.fast_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
+        SearchTerm = *FString::Printf (TEXT ("%s/fast_%s.fast_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
         if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Fast))] = Flipbook.Object;
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Fast))] = Flipbook.Object;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -61,11 +77,11 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directo
     }
 
     if (Stationary) {
-      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
-        SearchTerm = *FString::Printf (TEXT ("%s/stationary_%s.stationary_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
+        SearchTerm = *FString::Printf (TEXT ("%s/stationary_%s.stationary_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
         if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Stationary))] = Flipbook.Object;
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Stationary))] = Flipbook.Object;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -91,22 +107,28 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directo
     UPaperFlipbook *Flipbook1 = LoadObject<UPaperFlipbook> (nullptr, *AssetDataList[0].PackageName.ToString ());
     UPaperFlipbook *Flipbook2 = LoadObject<UPaperFlipbook> (nullptr, *AssetDataList[1].PackageName.ToString ());
 
-    if (Flipbook1) {
-      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::North, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
-      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::East, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
-      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::South, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
-      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::West, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
-    } else {
+    if (!Flipbook1) {
       UE_LOG (LogTemp, Warning, TEXT ("File %s is not valid!"), *AssetDataList[0].PackageName.ToString ());
     }
 
-    if (Flipbook2) {
+    if (!Flipbook2) {
+      UE_LOG (LogTemp, Warning, TEXT ("File %s is not valid!"), *AssetDataList[1].PackageName.ToString ());
+    }
+
+    if (!(Flipbook1 && Flipbook2)) {
+      return;
+    }
+
+    BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::North, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
+    BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::East, EEightDirFlipbookSpeeds::Stationary)] = bIsEightDirGlobal ? Flipbook1 : Flipbook2;
+    BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::South, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
+    BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::West, EEightDirFlipbookSpeeds::Stationary)] = bIsEightDirGlobal ? Flipbook1 : Flipbook2;
+
+    if (bIsEightDirGlobal) {
       BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Northeast, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
       BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Southeast, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
       BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Southwest, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
       BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Northwest, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
-    } else {
-      UE_LOG (LogTemp, Warning, TEXT ("File %s is not valid!"), *AssetDataList[1].PackageName.ToString ());
     }
   }
 }
@@ -180,6 +202,38 @@ void UEightDirActorComponent::BeginPlay () {
   SunGlobal = Cast<ADirectionalLight> (UGameplayStatics::GetActorOfClass (GetWorld (), ADirectionalLight::StaticClass ()));
   if (!SunGlobal) {
     UE_LOG (LogTemp, Warning, TEXT ("Unable to initialize SunGlobal"))
+  }
+}
+
+EEightDir UEightDirActorComponent::GetDirection (float Yaw) {
+  if (bIsEightDirGlobal) {
+    if EIGHT_DIR_IS_NORTH (Yaw) {
+      return EEightDir::North;
+    } else if EIGHT_DIR_IS_NORTHEAST (Yaw) {
+      return EEightDir::Northeast;
+    } else if EIGHT_DIR_IS_EAST (Yaw) {
+      return EEightDir::East;
+    } else if EIGHT_DIR_IS_SOUTHEAST (Yaw) {
+      return EEightDir::Southeast;
+    } else if EIGHT_DIR_IS_SOUTH (Yaw) {
+      return EEightDir::South;
+    } else if EIGHT_DIR_IS_SOUTHWEST (Yaw) {
+      return EEightDir::Southwest;
+    } else if EIGHT_DIR_IS_WEST (Yaw) {
+      return EEightDir::West;
+    } else {
+      return EEightDir::Northwest;
+    }
+  } else {
+    if FOUR_DIR_IS_NORTH (Yaw) {
+      return EEightDir::North;
+    } else if FOUR_DIR_IS_EAST (Yaw) {
+      return EEightDir::East;
+    } else if FOUR_DIR_IS_SOUTH (Yaw) {
+      return EEightDir::South;
+    } else {
+      return EEightDir::West;
+    }
   }
 }
 

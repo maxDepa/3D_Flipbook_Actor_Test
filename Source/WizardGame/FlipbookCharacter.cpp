@@ -46,7 +46,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
-  EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PixelAnims"), true, true, true);
+  EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PixelAnims"), true, true, true, true);
   EightDirActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true, FlipbookCharacterMaxWalkSpeed);
 
   static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Taylors_Folder/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
@@ -244,6 +244,8 @@ void AFlipbookCharacter::BeginPlay () {
       Subsystem->AddMappingContext (InputMappingContext, 0);
     }
   }
+
+  GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxWalkSpeed;
 
   SpawnActors ();
   EightDirActorComponent->UpdateDisplayAndShadowFlipbooks (true);

@@ -37,19 +37,19 @@ AHerb::AHerb () {
   ShadowFlipbook->bCastHiddenShadow = true;
 
   SeedlingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SeedlingActorComponent"));
-  SeedlingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Seedling/"), true, false, false, true);
+  SeedlingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Seedling/"), true, false, false, false, true);
   SeedlingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   SaplingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SaplingActorComponent"));
-  SaplingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Sapling/"), true, false, false, true);
+  SaplingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Sapling/"), true, false, false, false, true);
   SaplingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   YoungActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("YoungActorComponent"));
-  YoungActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Young/"), true, false, false, true);
+  YoungActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Young/"), true, false, false, false, true);
   YoungActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   MatureActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("MatureActorComponent"));
-  MatureActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Mature/"), true, false, false, true);
+  MatureActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Mature/"), true, false, false, false, true);
   MatureActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   CurrentStateComponentGlobal = SeedlingActorComponent;

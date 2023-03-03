@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-#include "EightDirFlipbookInterface.h"
 #include "EightDirActorComponent.h"
 #include "FlipbookCharacter.generated.h"
 
@@ -13,7 +12,7 @@ class UPaperFlipbookComponent;
 class APlayerCameraManager;
 
 UCLASS ()
-class WIZARDGAME_API AFlipbookCharacter : public ACharacter, public IEightDirFlipbookInterface
+class WIZARDGAME_API AFlipbookCharacter : public ACharacter
 {
 	GENERATED_BODY ()
 
