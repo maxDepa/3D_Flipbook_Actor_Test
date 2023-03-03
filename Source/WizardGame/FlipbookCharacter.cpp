@@ -38,9 +38,16 @@ AFlipbookCharacter::AFlipbookCharacter () {
   ShadowFlipbook->CastShadow = false;
   ShadowFlipbook->bCastHiddenShadow = true;
 
+  FlipbookCharacterMaxRunSpeed = 450.0f;
+  FlipbookCharacterMaxWalkSpeed = 200.0f;
+  GetCharacterMovement ()->MaxAcceleration = FLT_MAX;
+  GetCharacterMovement ()->BrakingDecelerationWalking = FLT_MAX;
+  GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, FLT_MAX);
+  GetCharacterMovement ()->bOrientRotationToMovement = true;
+
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
   EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PixelAnims"), true, true, true);
-  EightDirActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
+  EightDirActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true, FlipbookCharacterMaxWalkSpeed);
 
   static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Taylors_Folder/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
   if (InputContextAsset.Succeeded ()) {
@@ -85,7 +92,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   }
 
   PrimaryActorTick.bCanEverTick = true;
-  
+
 }
 
 void AFlipbookCharacter::Look (const FInputActionValue &Value) {
@@ -123,25 +130,21 @@ void AFlipbookCharacter::Look (const FInputActionValue &Value) {
 }
 
 void AFlipbookCharacter::Run (const FInputActionValue &Value) {
-  CharacterMovementComponent->MaxWalkSpeed = MaxRunSpeed;
+  GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxRunSpeed;
 }
 
 void AFlipbookCharacter::StopRunning (const FInputActionValue &Value) {
-  CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeed;
+  GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxWalkSpeed;
 }
 
 void AFlipbookCharacter::Aim (const FInputActionValue &Value) {
   IsAiming = true;
-  if (CharacterMovementComponent != nullptr) {
-    CharacterMovementComponent->bOrientRotationToMovement = false;
-  }
+  GetCharacterMovement ()->bOrientRotationToMovement = false;
 }
 
 void AFlipbookCharacter::StopAiming (const FInputActionValue &Value) {
   IsAiming = false;
-  if (CharacterMovementComponent != nullptr) {
-    CharacterMovementComponent->bOrientRotationToMovement = true;
-  }
+  GetCharacterMovement ()->bOrientRotationToMovement = true;
 }
 
 void AFlipbookCharacter::Move (const FInputActionValue &Value) {
@@ -229,12 +232,6 @@ void AFlipbookCharacter::SpawnActors () {
 void AFlipbookCharacter::BeginPlay () {
   Super::BeginPlay ();
 
-  CharacterMovementComponent = GetCharacterMovement ();
-
-  if (CharacterMovementComponent) {
-    CharacterMovementComponent->MaxWalkSpeed = MaxWalkSpeed;
-  }
-
   // Populate the LocalCameraManager global
   LocalCameraManager = GetWorld ()->GetFirstPlayerController ()->PlayerCameraManager;
   if (!LocalCameraManager) {
@@ -255,11 +252,11 @@ void AFlipbookCharacter::BeginPlay () {
 // Called every frame
 void AFlipbookCharacter::Tick (float DeltaTime) {
   Super::Tick (DeltaTime);
-  
+
   EightDirActorComponent->UpdateShadowFlipbook (true);
 
   if (IsAiming) {
-    
+
     // Test with capsule trace
     //
     FVector Start = GetActorLocation ();

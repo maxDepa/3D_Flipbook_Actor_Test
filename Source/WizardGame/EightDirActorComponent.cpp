@@ -14,33 +14,14 @@
 UEightDirActorComponent::UEightDirActorComponent () {
   PrimaryComponentTick.bCanEverTick = false;
 
+  BasicFlipbooks.SetNum (static_cast<uint8>(EEightDir::EightDirMax) * static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax));
+
   // Set all flipbooks to the default
   static ConstructorHelpers::FObjectFinder<UPaperFlipbook> DefaultFlipbook (DEFAULT_FLIPBOOK_PATH);
   if (DefaultFlipbook.Succeeded ()) {
-    StationaryNorthFlipbook = DefaultFlipbook.Object;
-    StationaryNortheastFlipbook = DefaultFlipbook.Object;
-    StationaryEastFlipbook = DefaultFlipbook.Object;
-    StationarySoutheastFlipbook = DefaultFlipbook.Object;
-    StationarySouthFlipbook = DefaultFlipbook.Object;
-    StationarySouthwestFlipbook = DefaultFlipbook.Object;
-    StationaryWestFlipbook = DefaultFlipbook.Object;
-    StationaryNorthwestFlipbook = DefaultFlipbook.Object;
-    SlowNorthFlipbook = DefaultFlipbook.Object;
-    SlowNortheastFlipbook = DefaultFlipbook.Object;
-    SlowEastFlipbook = DefaultFlipbook.Object;
-    SlowSoutheastFlipbook = DefaultFlipbook.Object;
-    SlowSouthFlipbook = DefaultFlipbook.Object;
-    SlowSouthwestFlipbook = DefaultFlipbook.Object;
-    SlowWestFlipbook = DefaultFlipbook.Object;
-    SlowNorthwestFlipbook = DefaultFlipbook.Object;
-    FastNorthFlipbook = DefaultFlipbook.Object;
-    FastNortheastFlipbook = DefaultFlipbook.Object;
-    FastEastFlipbook = DefaultFlipbook.Object;
-    FastSoutheastFlipbook = DefaultFlipbook.Object;
-    FastSouthFlipbook = DefaultFlipbook.Object;
-    FastSouthwestFlipbook = DefaultFlipbook.Object;
-    FastWestFlipbook = DefaultFlipbook.Object;
-    FastNorthwestFlipbook = DefaultFlipbook.Object;
+    for (int i = 0; i < BasicFlipbooks.Num (); i++) {
+      BasicFlipbooks[i] = DefaultFlipbook.Object;
+    }
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("DefaultFlipbook not found"));
   }
@@ -52,178 +33,42 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directo
   bSlowGlobal = Slow;
   bFastGlobal = Fast;
 
+  FString SearchTerm;
+
   if (!TwoFlipbookRotation) {
     if (Slow) {
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> NorthAsset (*FString::Printf (TEXT ("%s/slow_north.slow_north"), *Directory));
-      if (NorthAsset.Succeeded ()) {
-        SlowNorthFlipbook = NorthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("NorthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> NorthEastAsset (*FString::Printf (TEXT ("%s/slow_northeast.slow_northeast"), *Directory));
-      if (NorthEastAsset.Succeeded ()) {
-        SlowNortheastFlipbook = NorthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("NorthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> NorthWestAsset (*FString::Printf (TEXT ("%s/slow_northwest.slow_northwest"), *Directory));
-      if (NorthWestAsset.Succeeded ()) {
-        SlowNorthwestFlipbook = NorthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("NorthWestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> WestAsset (*FString::Printf (TEXT ("%s/slow_west.slow_west"), *Directory));
-      if (WestAsset.Succeeded ()) {
-        SlowWestFlipbook = WestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("WestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> EastAsset (*FString::Printf (TEXT ("%s/slow_east.slow_east"), *Directory));
-      if (EastAsset.Succeeded ()) {
-        SlowEastFlipbook = EastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("EastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> SouthAsset (*FString::Printf (TEXT ("%s/slow_south.slow_south"), *Directory));
-      if (SouthAsset.Succeeded ()) {
-        SlowSouthFlipbook = SouthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("SouthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> SouthEastAsset (*FString::Printf (TEXT ("%s/slow_southeast.slow_southeast"), *Directory));
-      if (SouthEastAsset.Succeeded ()) {
-        SlowSoutheastFlipbook = SouthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("SouthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> SouthWestAsset (*FString::Printf (TEXT ("%s/slow_southwest.slow_southwest"), *Directory));
-      if (SouthWestAsset.Succeeded ()) {
-        SlowSouthwestFlipbook = SouthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("SouthWestAsset not found"))
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
+        SearchTerm = *FString::Printf (TEXT ("%s/slow_%s.slow_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
+        if (Flipbook.Succeeded ()) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Slow))] = Flipbook.Object;
+        } else {
+          UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
+        }
       }
     }
 
     if (Fast) {
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastNorthAsset (*FString::Printf (TEXT ("%s/fast_north.fast_north"), *Directory));
-      if (FastNorthAsset.Succeeded ()) {
-        FastNorthFlipbook = FastNorthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastNorthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastNorthEastAsset (*FString::Printf (TEXT ("%s/fast_northeast.fast_northeast"), *Directory));
-      if (FastNorthEastAsset.Succeeded ()) {
-        FastNortheastFlipbook = FastNorthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastNorthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastNorthWestAsset (*FString::Printf (TEXT ("%s/fast_northwest.fast_northwest"), *Directory));
-      if (FastNorthWestAsset.Succeeded ()) {
-        FastNorthwestFlipbook = FastNorthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastNorthWestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastWestAsset (*FString::Printf (TEXT ("%s/fast_west.fast_west"), *Directory));
-      if (FastWestAsset.Succeeded ()) {
-        FastWestFlipbook = FastWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastWestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastEastAsset (*FString::Printf (TEXT ("%s/fast_east.fast_east"), *Directory));
-      if (FastEastAsset.Succeeded ()) {
-        FastEastFlipbook = FastEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastSouthAsset (*FString::Printf (TEXT ("%s/fast_south.fast_south"), *Directory));
-      if (FastSouthAsset.Succeeded ()) {
-        FastSouthFlipbook = FastSouthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastSouthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastSouthEastAsset (*FString::Printf (TEXT ("%s/fast_southeast.fast_southeast"), *Directory));
-      if (FastSouthEastAsset.Succeeded ()) {
-        FastSoutheastFlipbook = FastSouthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastSouthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> FastSouthWestAsset (*FString::Printf (TEXT ("%s/fast_southwest.fast_southwest"), *Directory));
-      if (FastSouthWestAsset.Succeeded ()) {
-        FastSouthwestFlipbook = FastSouthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("FastSouthWestAsset not found"));
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
+        SearchTerm = *FString::Printf (TEXT ("%s/fast_%s.fast_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
+        if (Flipbook.Succeeded ()) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Fast))] = Flipbook.Object;
+        } else {
+          UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
+        }
       }
     }
 
     if (Stationary) {
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationaryNorthAsset (*FString::Printf (TEXT ("%s/stationary_north.stationary_north"), *Directory));
-      if (StationaryNorthAsset.Succeeded ()) {
-        StationaryNorthFlipbook = StationaryNorthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationaryNorthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationaryNorthEastAsset (*FString::Printf (TEXT ("%s/stationary_northeast.stationary_northeast"), *Directory));
-      if (StationaryNorthEastAsset.Succeeded ()) {
-        StationaryNortheastFlipbook = StationaryNorthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationaryNorthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationaryNorthWestAsset (*FString::Printf (TEXT ("%s/stationary_northwest.stationary_northwest"), *Directory));
-      if (StationaryNorthWestAsset.Succeeded ()) {
-        StationaryNorthwestFlipbook = StationaryNorthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationaryNorthWestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationaryWestAsset (*FString::Printf (TEXT ("%s/stationary_west.stationary_west"), *Directory));
-      if (StationaryWestAsset.Succeeded ()) {
-        StationaryWestFlipbook = StationaryWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationaryWestAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationaryEastAsset (*FString::Printf (TEXT ("%s/stationary_east.stationary_east"), *Directory));
-      if (StationaryEastAsset.Succeeded ()) {
-        StationaryEastFlipbook = StationaryEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationaryEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationarySouthAsset (*FString::Printf (TEXT ("%s/stationary_south.stationary_south"), *Directory));
-      if (StationarySouthAsset.Succeeded ()) {
-        StationarySouthFlipbook = StationarySouthAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationarySouthAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationarySouthEastAsset (*FString::Printf (TEXT ("%s/stationary_southeast.stationary_southeast"), *Directory));
-      if (StationarySouthEastAsset.Succeeded ()) {
-        StationarySoutheastFlipbook = StationarySouthEastAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationarySouthEastAsset not found"));
-      }
-
-      static ConstructorHelpers::FObjectFinder<UPaperFlipbook> StationarySouthWestAsset (*FString::Printf (TEXT ("%s/stationary_southwest.stationary_southwest"), *Directory));
-      if (StationarySouthWestAsset.Succeeded ()) {
-        StationarySouthwestFlipbook = StationarySouthWestAsset.Object;
-      } else {
-        UE_LOG (LogTemp, Warning, TEXT ("StationarySouthWestAsset not found"));
+      for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i++) {
+        SearchTerm = *FString::Printf (TEXT ("%s/stationary_%s.stationary_%s"), *Directory, *DirectionStrings[i], *DirectionStrings[i]);
+        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
+        if (Flipbook.Succeeded ()) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX(i,static_cast<uint8>(EEightDirFlipbookSpeeds::Stationary))] = Flipbook.Object;
+        } else {
+          UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
+        }
       }
     }
   } else {
@@ -247,19 +92,19 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (const FString &Directo
     UPaperFlipbook *Flipbook2 = LoadObject<UPaperFlipbook> (nullptr, *AssetDataList[1].PackageName.ToString ());
 
     if (Flipbook1) {
-      StationaryNorthFlipbook = Flipbook1;
-      StationaryEastFlipbook = Flipbook1;
-      StationarySouthFlipbook = Flipbook1;
-      StationaryWestFlipbook = Flipbook1;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::North, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::East, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::South, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::West, EEightDirFlipbookSpeeds::Stationary)] = Flipbook1;
     } else {
       UE_LOG (LogTemp, Warning, TEXT ("File %s is not valid!"), *AssetDataList[0].PackageName.ToString ());
     }
 
     if (Flipbook2) {
-      StationaryNortheastFlipbook = Flipbook2;
-      StationarySoutheastFlipbook = Flipbook2;
-      StationarySouthwestFlipbook = Flipbook2;
-      StationaryNorthwestFlipbook = Flipbook2;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Northeast, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Southeast, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Southwest, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
+      BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Northwest, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
     } else {
       UE_LOG (LogTemp, Warning, TEXT ("File %s is not valid!"), *AssetDataList[1].PackageName.ToString ());
     }
@@ -305,98 +150,11 @@ void UEightDirActorComponent::UpdateFlipbook (
     }
 
     if (Speed >= SlowSpeedGlobal + SLOW_SPEED_BUFFER && bFastGlobal) {
-      switch (Direction) {
-        case EEightDir::North:
-          FlipbookToUse[i] = FastNorthFlipbook;
-          break;
-        case EEightDir::Northeast:
-          FlipbookToUse[i] = FastNortheastFlipbook;
-          break;
-        case EEightDir::East:
-          FlipbookToUse[i] = FastEastFlipbook;
-          break;
-        case EEightDir::Southeast:
-          FlipbookToUse[i] = FastSoutheastFlipbook;
-          break;
-        case EEightDir::South:
-          FlipbookToUse[i] = FastSouthFlipbook;
-          break;
-        case EEightDir::Southwest:
-          FlipbookToUse[i] = FastSouthwestFlipbook;
-          break;
-        case EEightDir::West:
-          FlipbookToUse[i] = FastWestFlipbook;
-          break;
-        case EEightDir::Northwest:
-          FlipbookToUse[i] = FastNorthwestFlipbook;
-          break;
-        default:
-          UE_LOG (LogTemp, Warning, TEXT ("Invalid direction!"));
-          FlipbookToUse[i] = FastNorthFlipbook;
-          break;
-      }
+      FlipbookToUse[i] = BasicFlipbooks[GET_FLIPBOOK_INDEX (Direction, EEightDirFlipbookSpeeds::Fast)];
     } else if (Speed >= MIN_SLOW_SPEED && bSlowGlobal) {
-      switch (Direction) {
-        case EEightDir::North:
-          FlipbookToUse[i] = SlowNorthFlipbook;
-          break;
-        case EEightDir::Northeast:
-          FlipbookToUse[i] = SlowNortheastFlipbook;
-          break;
-        case EEightDir::East:
-          FlipbookToUse[i] = SlowEastFlipbook;
-          break;
-        case EEightDir::Southeast:
-          FlipbookToUse[i] = SlowSoutheastFlipbook;
-          break;
-        case EEightDir::South:
-          FlipbookToUse[i] = SlowSouthFlipbook;
-          break;
-        case EEightDir::Southwest:
-          FlipbookToUse[i] = SlowSouthwestFlipbook;
-          break;
-        case EEightDir::West:
-          FlipbookToUse[i] = SlowWestFlipbook;
-          break;
-        case EEightDir::Northwest:
-          FlipbookToUse[i] = SlowNorthwestFlipbook;
-          break;
-        default:
-          UE_LOG (LogTemp, Warning, TEXT ("Invalid direction!"));
-          FlipbookToUse[i] = SlowNorthFlipbook;
-          break;
-      }
+      FlipbookToUse[i] = BasicFlipbooks[GET_FLIPBOOK_INDEX (Direction, EEightDirFlipbookSpeeds::Slow)];
     } else {
-      switch (Direction) {
-        case EEightDir::North:
-          FlipbookToUse[i] = StationaryNorthFlipbook;
-          break;
-        case EEightDir::Northeast:
-          FlipbookToUse[i] = StationaryNortheastFlipbook;
-          break;
-        case EEightDir::East:
-          FlipbookToUse[i] = StationaryEastFlipbook;
-          break;
-        case EEightDir::Southeast:
-          FlipbookToUse[i] = StationarySoutheastFlipbook;
-          break;
-        case EEightDir::South:
-          FlipbookToUse[i] = StationarySouthFlipbook;
-          break;
-        case EEightDir::Southwest:
-          FlipbookToUse[i] = StationarySouthwestFlipbook;
-          break;
-        case EEightDir::West:
-          FlipbookToUse[i] = StationaryWestFlipbook;
-          break;
-        case EEightDir::Northwest:
-          FlipbookToUse[i] = StationaryNorthwestFlipbook;
-          break;
-        default:
-          UE_LOG (LogTemp, Warning, TEXT ("Invalid direction!"));
-          FlipbookToUse[i] = StationaryNorthFlipbook;
-          break;
-      }
+      FlipbookToUse[i] = BasicFlipbooks[GET_FLIPBOOK_INDEX (Direction, EEightDirFlipbookSpeeds::Stationary)];
     }
   }
 

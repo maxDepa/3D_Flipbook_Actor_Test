@@ -50,10 +50,10 @@ protected:
 		UEightDirActorComponent *EightDirActorComponent;
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Movement Speed")
-		float MaxWalkSpeed;
+		float FlipbookCharacterMaxWalkSpeed;
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Movement Speed")
-		float MaxRunSpeed;
+		float FlipbookCharacterMaxRunSpeed;
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "ActorSpawnTest")
 		TSubclassOf<AActor> TestActorClass;

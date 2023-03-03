@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "EightDirFlipbookInterface.h"
+#include "Containers/StaticArray.h"
 #include "EightDirActorComponent.generated.h"
 
 class UPaperFlipbook;
@@ -28,6 +29,13 @@ class ADirectionalLight;
 
 // Float representing a rotational offset required to ensure the flipbook is perpendicular to the camera
 #define FLIPBOOK_ROTATIONAL_OFFSET 90.0f // BEEBE TODO: Change rotational zero point?
+
+// Macro for getting the index of the desired flipbook based on the speed and direction
+#define GET_FLIPBOOK_INDEX(Dir,Speed) \
+    (((static_cast<uint8>(Dir) < static_cast<uint8>(EEightDir::EightDirMax)) && \
+    (static_cast<uint8>(Speed) < static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax))) ? \
+    ((static_cast<uint8>(Speed) * static_cast<uint8>(EEightDir::EightDirMax)) + static_cast<uint8>(Dir)) : \
+    (0))
 
 UCLASS (ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class WIZARDGAME_API UEightDirActorComponent : public UActorComponent, public IEightDirFlipbookInterface {
@@ -59,77 +67,8 @@ public:
     float SlowSpeed = -1.0f
     );
 
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationaryNorthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationaryNortheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationaryEastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationarySoutheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationarySouthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationarySouthwestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationaryWestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *StationaryNorthwestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowNorthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowNortheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowEastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowSoutheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowSouthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowSouthwestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowWestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *SlowNorthwestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastNorthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastNortheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastEastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastSoutheastFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastSouthFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastSouthwestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastWestFlipbook;
-
-  UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Animations")
-    UPaperFlipbook *FastNorthwestFlipbook;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
+    TArray<UPaperFlipbook *> BasicFlipbooks;
 
 protected:
   virtual void BeginPlay () override;
@@ -170,11 +109,11 @@ private:
   TObjectPtr <UPaperFlipbookComponent> ShadowFlipbook;
 
   void UpdateFlipbook (
-    EEightDir DisplayFlipboookDirection, 
+    EEightDir DisplayFlipboookDirection,
     EEightDir ShadowFlipboookDirection,
     float Speed
   );
-  
+
   EEightDir GetFlipbookDirection (FRotator ControlRotation, FRotator ComponentRotation);
-  
+
 };

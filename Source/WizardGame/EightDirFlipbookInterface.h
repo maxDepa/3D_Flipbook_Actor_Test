@@ -45,6 +45,20 @@ const FString DirectionStrings[] = {
 	TEXT ("EightDirMax")
 };
 
+enum class EEightDirFlipbookSpeeds : uint8 {
+	Stationary,
+  Slow,
+  Fast,
+  SpeedMax
+};
+
+const FString FlipbookSpeedStrings[] = {
+  TEXT ("Stationary"),
+  TEXT ("Slow"),
+  TEXT ("Fast"),
+  TEXT ("EightDirFlipbookTypeMax")
+};
+
 #define IS_NORTH(Yaw) (Yaw >= -22.5f && Yaw < 22.5f)
 #define IS_NORTHEAST(Yaw) (Yaw >= 22.5f && Yaw < 67.5f)
 #define IS_EAST(Yaw) (Yaw >= 67.5f && Yaw <= 112.5f)
@@ -56,32 +70,6 @@ const FString DirectionStrings[] = {
 
 #define DEFAULT_FLIPBOOK_PATH TEXT ("/Game/Flipbooks/DefaultFlipbook/DefaultFlipbook.DefaultFlipbook")
 #define DEFAULT_FLIPBOOK_SLOW_SPEED 150.0f
-
-#define STATIONARY_NORTH_INDEX 0
-#define STATIONARY_NORTHEAST_INDEX 1
-#define STATIONARY_EAST_INDEX 2
-#define STATIONARY_SOUTHEAST_INDEX 3
-#define STATIONARY_SOUTH_INDEX 4
-#define STATIONARY_SOUTHWEST_INDEX 5
-#define STATIONARY_WEST_INDEX 6
-#define STATIONARY_NORTHWEST_INDEX 7
-#define SLOW_NORTH_INDEX 8
-#define SLOW_NORTHEAST_INDEX 9
-#define SLOW_EAST_INDEX 10
-#define SLOW_SOUTHEAST_INDEX 11
-#define SLOW_SOUTH_INDEX 12
-#define SLOW_SOUTHWEST_INDEX 13
-#define SLOW_WEST_INDEX 14
-#define SLOW_NORTHWEST_INDEX 15
-#define FAST_NORTH_INDEX 16
-#define FAST_NORTHEAST_INDEX 17
-#define FAST_EAST_INDEX 18
-#define FAST_SOUTHEAST_INDEX 19
-#define FAST_SOUTH_INDEX 20
-#define FAST_SOUTHWEST_INDEX 21
-#define FAST_WEST_INDEX 22
-#define FAST_NORTHWEST_INDEX 23
-#define MAX_FLIPBOOK_INDEX 24
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, NotBlueprintable)
