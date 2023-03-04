@@ -65,11 +65,10 @@ public:
 		void Destroy ();
 
 	//UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
-	//	virtual UPaperFlipbook GetStateFlipbook (EFloraState State)  const override;
+	//	UPaperFlipbook GetStateFlipbook (EFloraState State);
 
 	//UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
-	//	virtual void SetStateFlipbook (EFloraState State, UPaperFlipbook Flipbook) override;
-
+	//	void SetStateFlipbook (EFloraState State, UPaperFlipbook Flipbook);
 
 protected:
 
@@ -97,10 +96,10 @@ protected:
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *MatureActorComponent;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks", meta = (Tags = "DisplayFlipbook"))
 		UPaperFlipbookComponent *DisplayFlipbook;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks", meta = (Tags = "ShadowFlipbook"))
 		UPaperFlipbookComponent *ShadowFlipbook;
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Root Component")

@@ -27,32 +27,36 @@ UEightDirActorComponent::UEightDirActorComponent () {
   }
 }
 
-void UEightDirActorComponent::LoadFlipbooksFromDirectory (
-  const FString &Directory,
-  bool Stationary,
-  bool Slow,
-  bool Fast,
+void UEightDirActorComponent::SetupAttachment (
+  const FString &FlipbookDirectory,
+  bool HasStationaryFlipbooks,
+  bool HasSlowFlipbooks,
+  bool HasFastFlipbooks,
   bool IsEightDir,
-  bool TwoFlipbookRotation
+  bool IsTwoFlipbookRotation,
+  bool CastsShadow,
+  float SlowSpeed
 ) {
 
-  bStationaryGlobal = Stationary;
-  bSlowGlobal = Slow;
-  bFastGlobal = Fast;
+  bStationaryGlobal = HasStationaryFlipbooks;
+  bSlowGlobal = HasSlowFlipbooks;
+  bFastGlobal = HasFastFlipbooks;
   bIsEightDirGlobal = IsEightDir;
+  bCastShadowGlobal = CastsShadow;
+  SlowSpeedGlobal = SlowSpeed < 0.0f ? DEFAULT_FLIPBOOK_SLOW_SPEED : SlowSpeed;
 
   FString SearchTerm;
   int step = bIsEightDirGlobal ? 1 : 2;
 
 
-  if (!TwoFlipbookRotation) {
-    FString DirectoryWithNoTrailingSlash = Directory;
+  if (!IsTwoFlipbookRotation) {
+    FString DirectoryWithNoTrailingSlash = FlipbookDirectory;
 
     if (DirectoryWithNoTrailingSlash.EndsWith ("/")) {
       DirectoryWithNoTrailingSlash.RemoveAt (DirectoryWithNoTrailingSlash.Len () - 1);
     }
 
-    if (Slow) {
+    if (HasSlowFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/slow_%s.slow_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
@@ -64,7 +68,7 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (
       }
     }
 
-    if (Fast) {
+    if (HasFastFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/fast_%s.fast_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
@@ -76,7 +80,7 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (
       }
     }
 
-    if (Stationary) {
+    if (HasStationaryFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/stationary_%s.stationary_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
         ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
@@ -92,7 +96,7 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (
     UObjectLibrary *FlipbookLibrary = UObjectLibrary::CreateLibrary (UPaperFlipbook::StaticClass (), false, GIsEditor);
 
     FlipbookLibrary->AddToRoot ();
-    FlipbookLibrary->LoadAssetDataFromPath (Directory);
+    FlipbookLibrary->LoadAssetDataFromPath (FlipbookDirectory);
     FlipbookLibrary->LoadAssetsFromAssetData ();
 
     TArray<FAssetData> AssetDataList;
@@ -100,7 +104,7 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (
 
     // We expect there to be only two flipbooks in the input directory
     if (AssetDataList.Num () != 2) {
-      UE_LOG (LogTemp, Warning, TEXT ("Directory %s can only have two flipbooks present"), *Directory);
+      UE_LOG (LogTemp, Warning, TEXT ("Directory %s can only have two flipbooks present"), *FlipbookDirectory);
       return;
     }
 
@@ -131,27 +135,6 @@ void UEightDirActorComponent::LoadFlipbooksFromDirectory (
       BasicFlipbooks[GET_FLIPBOOK_INDEX (EEightDir::Northwest, EEightDirFlipbookSpeeds::Stationary)] = Flipbook2;
     }
   }
-}
-
-void UEightDirActorComponent::SetupAttachment (
-  USceneComponent *ActorRootComponent,
-  UPaperFlipbookComponent *DisplayFlipbookComponent,
-  UPaperFlipbookComponent *ShadowFlipbookComponent,
-  bool CastShadow,
-  float SlowSpeed
-) {
-  DisplayFlipbook = DisplayFlipbookComponent;
-
-  if (CastShadow && ShadowFlipbookComponent) {
-    ShadowFlipbook = ShadowFlipbookComponent;
-    ShadowFlipbook->CastShadow = true;
-    ShadowFlipbook->bHiddenInGame = true;
-    ShadowFlipbook->bCastHiddenShadow = true;
-  }
-  bCastShadowGlobal = CastShadow;
-  RootComponentGlobal = ActorRootComponent;
-  SlowSpeedGlobal = SlowSpeed < 0.0f ? DEFAULT_FLIPBOOK_SLOW_SPEED : SlowSpeed;
-  PrimitiveRootComponentGlobal = Cast<UPrimitiveComponent> (ActorRootComponent);
 }
 
 void UEightDirActorComponent::UpdateFlipbook (
@@ -204,6 +187,37 @@ void UEightDirActorComponent::BeginPlay () {
     );
   if (!SunGlobal) {
     UE_LOG (LogTemp, Warning, TEXT ("Unable to initialize SunGlobal"))
+  }
+
+  AActor *Parent = GetOwner ();
+
+  if (Parent) {
+    TArray<UPaperFlipbookComponent *> Components;
+    Parent->GetComponents<UPaperFlipbookComponent> (Components);
+
+    for (UPaperFlipbookComponent *Component : Components) {
+      if (Component->ComponentHasTag (TEXT ("DisplayFlipbook"))) {
+        DisplayFlipbook = Component;
+      } else if (Component->ComponentHasTag (TEXT ("ShadowFlipbook"))) {
+        ShadowFlipbook = Component;
+        ShadowFlipbook->CastShadow = true;
+        ShadowFlipbook->bHiddenInGame = true;
+        ShadowFlipbook->bCastHiddenShadow = true;
+      }
+    }
+  }
+
+  check (DisplayFlipbook);
+  if (bCastShadowGlobal) {
+    check (ShadowFlipbook);
+  }
+
+  RootComponentGlobal = Parent->GetRootComponent ();
+  check (RootComponentGlobal);
+
+  if (RootComponentGlobal) {
+    PrimitiveRootComponentGlobal = Cast<UPrimitiveComponent> (RootComponentGlobal);
+    check (PrimitiveRootComponentGlobal);
   }
 }
 
@@ -269,10 +283,18 @@ void UEightDirActorComponent::UpdateDisplayFlipbook (
       DisplayFlipbook->SetWorldRotation (
         FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
       );
+
+      float Speed = SpeedOverride;
+
+      if (SpeedOverride < 0.0f) {
+        check (PrimitiveRootComponentGlobal);
+        Speed = PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ();
+      }
+
       UpdateFlipbook (
         GetFlipbookDirection (ControlRotation),
         EEightDir::EightDirMax,
-        SpeedOverride >= 0.0f ? SpeedOverride : PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ()
+        Speed
       );
 
     }
@@ -301,10 +323,18 @@ void UEightDirActorComponent::UpdateShadowFlipbook (
         // Rotate the shadow flipbook
         ControlRotation = SunGlobal->GetActorRotation ();
         ShadowFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
+        
+        float Speed = SpeedOverride;
+
+        if (SpeedOverride < 0.0f) {
+          check (PrimitiveRootComponentGlobal);
+          Speed = PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ();
+        }
+        
         UpdateFlipbook (
           EEightDir::EightDirMax,
           GetFlipbookDirection (ControlRotation),
-          SpeedOverride >= 0.0f ? SpeedOverride : PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ()
+          Speed
         );
       }
 
@@ -355,11 +385,18 @@ void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
       }
     }
 
+    float Speed = SpeedOverride;
+
+    if (SpeedOverride < 0.0f) {
+      check (PrimitiveRootComponentGlobal);
+      Speed = PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ();
+    }
+
     // Only update the flipbook(s) if the component has been rendered recently
     UpdateFlipbook (
       DisplayFlipbookDirection,
       ShadowFlipbookDirection,
-      SpeedOverride >= 0.0f ? SpeedOverride : PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ()
+      Speed
     );
   }
 }

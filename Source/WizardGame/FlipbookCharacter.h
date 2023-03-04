@@ -57,10 +57,10 @@ protected:
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "ActorSpawnTest")
 		TSubclassOf<AActor> TestActorClass;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbook")
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbook", meta = (Tags = "DisplayFlipbook"))
 		UPaperFlipbookComponent *DisplayFlipbook;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbook")
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbook", meta = (Tags = "ShadowFlipbook"))
 		UPaperFlipbookComponent *ShadowFlipbook;
 
 public:

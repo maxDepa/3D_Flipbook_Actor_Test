@@ -28,6 +28,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   DisplayFlipbook->CastShadow = false;
   DisplayFlipbook->SetRelativeScale3D (FVector (2.0f, 2.0f, 2.0f));
   DisplayFlipbook->SetRelativeLocation (FVector (0.0f, 0.0f, -30.0f));
+  DisplayFlipbook->ComponentTags = { TEXT ("DisplayFlipbook") };
 
   // Setup the shadow flipbook
   ShadowFlipbook = CreateDefaultSubobject<UPaperFlipbookComponent> (TEXT ("EightDirShadowFlipbook"));
@@ -37,6 +38,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   ShadowFlipbook->bHiddenInGame = true;
   ShadowFlipbook->CastShadow = false;
   ShadowFlipbook->bCastHiddenShadow = true;
+  ShadowFlipbook->ComponentTags = { TEXT ("ShadowFlipbook") };
 
   FlipbookCharacterMaxRunSpeed = 450.0f;
   FlipbookCharacterMaxWalkSpeed = 200.0f;
@@ -46,8 +48,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
-  EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/PixelArt/CharacterPixelArt/Flipbooks"), true, true, true, true);
-  EightDirActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true, FlipbookCharacterMaxWalkSpeed);
+  EightDirActorComponent->SetupAttachment (TEXT ("/Game/PixelArt/CharacterPixelArt/Flipbooks"), true, true, true, true, false, true, FlipbookCharacterMaxWalkSpeed);
 
   static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
   if (InputContextAsset.Succeeded ()) {

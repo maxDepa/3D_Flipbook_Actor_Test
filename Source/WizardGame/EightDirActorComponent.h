@@ -88,7 +88,7 @@ const FString FlipbookSpeedStrings[] = {
 #define FOUR_DIR_IS_WEST(Yaw) (Yaw > -135.0 && Yaw <= -45.0)
 
 // Default flipbook path to use to ensure a NULL access does not occur
-#define DEFAULT_FLIPBOOK_PATH TEXT ("/Game/Flipbooks/DefaultFlipbook/DefaultFlipbook.DefaultFlipbook")
+#define DEFAULT_FLIPBOOK_PATH TEXT ("/Game/PixelArt/Default/Flipbooks/DefaultFlipbook.DefaultFlipbook")
 
 // Default flipbook speed
 #define DEFAULT_FLIPBOOK_SLOW_SPEED 150.0f
@@ -146,23 +146,26 @@ public:
     float SpeedOverride = -1.0f
     );
 
-  UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-    void LoadFlipbooksFromDirectory (
-    const FString &Directory,
-    bool stationary,
-    bool slow,
-    bool fast,
-    bool IsEightDir,
-    bool TwoFlipbookRotation = false
-    );
+  //UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
+  //  void LoadFlipbooksFromDirectory (
+  //  const FString &Directory,
+  //  bool stationary,
+  //  bool slow,
+  //  bool fast,
+  //  bool IsEightDir,
+  //  bool TwoFlipbookRotation = false
+  //  );
 
   // Indirection for the USceneCompoenent SetupAttachment function
-  UFUNCTION (BlueprintCallable, Category = "Functions")
+  UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void SetupAttachment (
-    USceneComponent *ActorRootComponent,
-    UPaperFlipbookComponent *DisplayFlipbookComponent,
-    UPaperFlipbookComponent *ShadowFlipbookComponent,
-    bool CastShadow = false,
+    const FString &FlipbookDirectory,
+    bool HasStationaryFlipbooks,
+    bool HasSlowFlipbooks,
+    bool HasFastFlipbooks,
+    bool IsEightDir,
+    bool IsTwoFlipbookRotation,
+    bool CastsShadow = false,
     float SlowSpeed = -1.0f
     );
 

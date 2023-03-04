@@ -29,6 +29,7 @@ AFlora::AFlora()
   DisplayFlipbook->CastShadow = false;
   DisplayFlipbook->SetRelativeScale3D (FVector (2.0f, 2.0f, 2.0f));
   DisplayFlipbook->SetRelativeLocation (FVector (0.0f, 0.0f, -30.0f));
+  DisplayFlipbook->ComponentTags = { TEXT ("DisplayFlipbook") };
 
   // Setup the shadow flipbook
   ShadowFlipbook = CreateDefaultSubobject<UPaperFlipbookComponent> (TEXT ("EightDirShadowFlipbook"));
@@ -38,25 +39,14 @@ AFlora::AFlora()
   ShadowFlipbook->bHiddenInGame = true;
   ShadowFlipbook->CastShadow = false;
   ShadowFlipbook->bCastHiddenShadow = true;
+  ShadowFlipbook->ComponentTags = { TEXT ("ShadowFlipbook") };
 
   SeedlingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SeedlingActorComponent"));
-  //SeedlingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Seedling/"), true, false, false, false, true);
-  //SeedlingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
-
   SaplingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SaplingActorComponent"));
-  //SaplingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Sapling/"), true, false, false, false, true);
-  //SaplingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
-
   YoungActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("YoungActorComponent"));
-  //YoungActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Young/"), true, false, false, false, true);
-  //YoungActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
-
   MatureActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("MatureActorComponent"));
-  //MatureActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Mature/"), true, false, false, false, true);
-  //MatureActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
-
+  
   CurrentStateComponentGlobal = SeedlingActorComponent;
-
 }
 
 // Called when the game starts or when spawned
@@ -123,7 +113,6 @@ void AFlora::Destroy () {
   SetFloraState (EFloraState::Destroyed);
 }
 
-// Called every frame
 void AFlora::Tick(float DeltaTime)
 {
   Super::Tick (DeltaTime);
