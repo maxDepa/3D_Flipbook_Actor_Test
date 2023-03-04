@@ -1,13 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Herb.h"
+#include "Flora.h"
 #include "Components/CapsuleComponent.h"
 #include "PaperFlipbookComponent.h"
+#include "EightDirActorComponent.h"
 
 UEightDirActorComponent *CurrentStateComponentGlobal;
 
-AHerb::AHerb () {
+// Sets default values
+AFlora::AFlora()
+{
   SetFloraState (EFloraState::Seedling);
   PrimaryActorTick.bCanEverTick = true;
   CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent> (TEXT ("Root Component"));
@@ -37,51 +40,49 @@ AHerb::AHerb () {
   ShadowFlipbook->bCastHiddenShadow = true;
 
   SeedlingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SeedlingActorComponent"));
-  SeedlingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Seedling/"), true, false, false, false, true);
-  SeedlingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
+  //SeedlingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Seedling/"), true, false, false, false, true);
+  //SeedlingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   SaplingActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("SaplingActorComponent"));
-  SaplingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Sapling/"), true, false, false, false, true);
-  SaplingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
+  //SaplingActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Sapling/"), true, false, false, false, true);
+  //SaplingActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   YoungActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("YoungActorComponent"));
-  YoungActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Young/"), true, false, false, false, true);
-  YoungActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
+  //YoungActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Young/"), true, false, false, false, true);
+  //YoungActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   MatureActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("MatureActorComponent"));
-  MatureActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Mature/"), true, false, false, false, true);
-  MatureActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
+  //MatureActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PlantPixelArt/GreenHerb/Mature/"), true, false, false, false, true);
+  //MatureActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true);
 
   CurrentStateComponentGlobal = SeedlingActorComponent;
+
 }
 
-void AHerb::Tick (float DeltaTime) {
-  Super::Tick (DeltaTime);
-  CurrentStateComponentGlobal->UpdateDisplayAndShadowFlipbooks (true);
-}
-
-void AHerb::BeginPlay () {
+// Called when the game starts or when spawned
+void AFlora::BeginPlay()
+{
   Super::BeginPlay ();
   CurrentStateComponentGlobal->UpdateDisplayAndShadowFlipbooks (true);
 }
 
-bool AHerb::RequiresWater () const {
+bool AFlora::RequiresWater () {
   return bRequiresWater;
 }
 
-bool AHerb::IsEdible () const {
+bool AFlora::IsEdible () {
   return bIsEdible;
 }
 
-int AHerb::GetNumDaysToGrow () const {
-  return NumDaysToGrow;
+int AFlora::GetNumDaysToGrow () {
+  return bIsEdible;
 }
 
-EFloraState AHerb::GetFloraState () const {
+EFloraState AFlora::GetFloraState () {
   return CurrentState;
 }
 
-void AHerb::SetFloraState (EFloraState NewState) {
+void AFlora::SetFloraState (EFloraState NewState) {
   CurrentState = NewState;
   switch (CurrentState) {
     case EFloraState::Seedling:
@@ -101,3 +102,31 @@ void AHerb::SetFloraState (EFloraState NewState) {
       break;
   }
 }
+
+void AFlora::Grow () {
+  EFloraState State = GetFloraState ();
+
+  if (State < EFloraState::Mature) {
+    SetFloraState (static_cast<EFloraState>(static_cast<uint8>(State) + 1));
+  }
+}
+
+void AFlora::Shrink () {
+  EFloraState State = GetFloraState ();
+
+  if (State > EFloraState::Seedling) {
+    SetFloraState (static_cast<EFloraState>(static_cast<uint8>(State) - 1));
+  }
+}
+
+void AFlora::Destroy () {
+  SetFloraState (EFloraState::Destroyed);
+}
+
+// Called every frame
+void AFlora::Tick(float DeltaTime)
+{
+  Super::Tick (DeltaTime);
+  CurrentStateComponentGlobal->UpdateDisplayAndShadowFlipbooks (true);
+}
+
