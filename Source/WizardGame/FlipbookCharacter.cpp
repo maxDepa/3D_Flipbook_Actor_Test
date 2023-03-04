@@ -46,45 +46,45 @@ AFlipbookCharacter::AFlipbookCharacter () {
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
-  EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/Taylors_Folder/PixelArt/PixelAnims"), true, true, true, true);
+  EightDirActorComponent->LoadFlipbooksFromDirectory (TEXT ("/Game/PixelArt/CharacterPixelArt/Flipbooks"), true, true, true, true);
   EightDirActorComponent->SetupAttachment (RootComponent, DisplayFlipbook, ShadowFlipbook, true, FlipbookCharacterMaxWalkSpeed);
 
-  static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Taylors_Folder/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
+  static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
   if (InputContextAsset.Succeeded ()) {
     InputMappingContext = InputContextAsset.Object;
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("InputMappingContextAsset not found"));
   }
 
-  static ConstructorHelpers::FObjectFinder<UInputAction> LookActionAsset (TEXT ("/Game/Taylors_Folder/Input/Actions/IA_TaylorLook.IA_TaylorLook"));
+  static ConstructorHelpers::FObjectFinder<UInputAction> LookActionAsset (TEXT ("/Game/Input/Actions/IA_TaylorLook.IA_TaylorLook"));
   if (LookActionAsset.Succeeded ()) {
     LookInputAction = LookActionAsset.Object;
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("LookActionAsset not found"));
   }
 
-  static ConstructorHelpers::FObjectFinder<UInputAction> RunActionAsset (TEXT ("/Game/Taylors_Folder/Input/Actions/IA_TaylorRun.IA_TaylorRun"));
+  static ConstructorHelpers::FObjectFinder<UInputAction> RunActionAsset (TEXT ("/Game/Input/Actions/IA_TaylorRun.IA_TaylorRun"));
   if (RunActionAsset.Succeeded ()) {
     RunInputAction = RunActionAsset.Object;
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("RunActionAsset not found"));
   }
 
-  static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset (TEXT ("/Game/Taylors_Folder/Input/Actions/IA_TaylorJump.IA_TaylorJump"));
+  static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset (TEXT ("/Game/Input/Actions/IA_TaylorJump.IA_TaylorJump"));
   if (JumpActionAsset.Succeeded ()) {
     JumpInputAction = JumpActionAsset.Object;
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("JumpActionAsset not found"));
   }
 
-  static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionAsset (TEXT ("/Game/Taylors_Folder/Input/Actions/IA_TaylorMove.IA_TaylorMove"));
+  static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionAsset (TEXT ("/Game/Input/Actions/IA_TaylorMove.IA_TaylorMove"));
   if (MoveActionAsset.Succeeded ()) {
     MoveInputAction = MoveActionAsset.Object;
   } else {
     UE_LOG (LogTemp, Warning, TEXT ("MoveActionAsset not found"));
   }
 
-  static ConstructorHelpers::FObjectFinder<UInputAction> AimActionAsset (TEXT ("/Game/Taylors_Folder/Input/Actions/IA_TaylorAim.IA_TaylorAim"));
+  static ConstructorHelpers::FObjectFinder<UInputAction> AimActionAsset (TEXT ("/Game/Input/Actions/IA_TaylorAim.IA_TaylorAim"));
   if (AimActionAsset.Succeeded ()) {
     AimInputAction = AimActionAsset.Object;
   } else {
