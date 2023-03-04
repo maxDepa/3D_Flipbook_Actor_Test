@@ -27,6 +27,18 @@ class ADirectionalLight;
 //		 with the above compass
 ////
 
+#define NORTH 0.0f
+#define NORTHEAST 45.0f
+#define EAST 90.0f
+#define SOUTHEAST 135.0f
+#define SOUTH 180.0f
+#define SOUTHWEST 225.0f
+#define WEST 270.0f
+#define NORTHWEST 315.0f
+
+#define EIGHT_DIR_DIFF 22.5f
+#define FOUR_DIR_DIFF 45.0f
+
 // Flipbook direction enum
 UENUM (BlueprintType)
 enum class EEightDir : uint8 {
@@ -223,5 +235,8 @@ private:
   // Given the rotation of the component and the rotation of some control, return the flipbook facing the
   // dimensionally correct direction
   EEightDir GetFlipbookDirection (FRotator ControlRotation);
+
+
+  float GetClosestRotation (float Yaw);
 
 };

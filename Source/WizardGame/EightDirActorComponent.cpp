@@ -14,7 +14,7 @@
 UEightDirActorComponent::UEightDirActorComponent () {
   PrimaryComponentTick.bCanEverTick = false;
 
-  BasicFlipbooks.SetNum (static_cast<uint8>(EEightDir::EightDirMax) * static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax));
+  BasicFlipbooks.Init (nullptr, static_cast<uint8>(EEightDir::EightDirMax) * static_cast<uint8>(EEightDirFlipbookSpeeds::SpeedMax));
 
   // Set all flipbooks to the default
   static ConstructorHelpers::FObjectFinder<UPaperFlipbook> DefaultFlipbook (DEFAULT_FLIPBOOK_PATH);
@@ -51,6 +51,7 @@ void UEightDirActorComponent::SetupAttachment (
 
   if (!IsTwoFlipbookRotation) {
     FString DirectoryWithNoTrailingSlash = FlipbookDirectory;
+    UPaperFlipbook *Flipbook = nullptr;
 
     if (DirectoryWithNoTrailingSlash.EndsWith ("/")) {
       DirectoryWithNoTrailingSlash.RemoveAt (DirectoryWithNoTrailingSlash.Len () - 1);
@@ -59,9 +60,9 @@ void UEightDirActorComponent::SetupAttachment (
     if (HasSlowFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/slow_%s.slow_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
-        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
-        if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Slow))] = Flipbook.Object;
+        Flipbook = Cast<UPaperFlipbook> (StaticLoadObject (UPaperFlipbook::StaticClass (), nullptr, *SearchTerm, nullptr, LOAD_None, nullptr));
+        if (Flipbook) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Slow))] = Flipbook;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -71,9 +72,9 @@ void UEightDirActorComponent::SetupAttachment (
     if (HasFastFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/fast_%s.fast_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
-        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
-        if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Fast))] = Flipbook.Object;
+        Flipbook = Cast<UPaperFlipbook> (StaticLoadObject (UPaperFlipbook::StaticClass (), nullptr, *SearchTerm, nullptr, LOAD_None, nullptr));
+        if (Flipbook) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Fast))] = Flipbook;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -83,9 +84,9 @@ void UEightDirActorComponent::SetupAttachment (
     if (HasStationaryFlipbooks) {
       for (int i = 0; i < static_cast<uint8>(EEightDir::EightDirMax); i += step) {
         SearchTerm = *FString::Printf (TEXT ("%s/stationary_%s.stationary_%s"), *DirectoryWithNoTrailingSlash, *DirectionStrings[i], *DirectionStrings[i]);
-        ConstructorHelpers::FObjectFinder<UPaperFlipbook> Flipbook (*SearchTerm);
-        if (Flipbook.Succeeded ()) {
-          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Stationary))] = Flipbook.Object;
+        Flipbook = Cast<UPaperFlipbook> (StaticLoadObject (UPaperFlipbook::StaticClass (), nullptr, *SearchTerm, nullptr, LOAD_None, nullptr));
+        if (Flipbook) {
+          BasicFlipbooks[GET_FLIPBOOK_INDEX (i, static_cast<uint8>(EEightDirFlipbookSpeeds::Stationary))] = Flipbook;
         } else {
           UE_LOG (LogTemp, Warning, TEXT ("%s not found"), *SearchTerm);
         }
@@ -263,14 +264,54 @@ EEightDir UEightDirActorComponent::GetFlipbookDirection (
   );
 }
 
+float UEightDirActorComponent::GetClosestRotation (float Yaw) {
+  // Wrap the yaw to a value between 0 and 360
+  Yaw = FMath::Fmod (Yaw, 360.0f);
+  if (Yaw < 0.0f) {
+    Yaw += 360.0f;
+  }
+
+  // Determine which direction the yaw is closest to
+  if (bIsEightDirGlobal) {
+    if (Yaw < NORTHEAST - EIGHT_DIR_DIFF) {
+      return NORTH;
+    } else if (Yaw < EAST - EIGHT_DIR_DIFF) {
+      return NORTHEAST;
+    } else if (Yaw < SOUTHEAST - EIGHT_DIR_DIFF) {
+      return EAST;
+    } else if (Yaw < SOUTH - EIGHT_DIR_DIFF) {
+      return SOUTHEAST;
+    } else if (Yaw < SOUTHWEST - EIGHT_DIR_DIFF) {
+      return SOUTH;
+    } else if (Yaw < WEST - EIGHT_DIR_DIFF) {
+      return SOUTHWEST;
+    } else if (Yaw < NORTHWEST - EIGHT_DIR_DIFF) {
+      return WEST;
+    } else {
+      return NORTHWEST;
+    }
+  } else {
+    // Return the closest of the four cardinal directions
+    if (Yaw < EAST - FOUR_DIR_DIFF) {
+      return NORTH;
+    } else if (Yaw < SOUTH - FOUR_DIR_DIFF) {
+      return EAST;
+    } else if (Yaw < WEST - FOUR_DIR_DIFF) {
+      return SOUTH;
+    } else {
+      return WEST;
+    }
+  }
+}
+
 void UEightDirActorComponent::UpdateDisplayFlipbook (
   bool ForceUpdate,
   float SpeedOverride
 ) {
-
   if (DisplayFlipbook && (ForceUpdate || DisplayFlipbook->WasRecentlyRendered (0.1f))) {
     FRotator ControlRotation;
     EEightDir DisplayFlipbookDirection = EEightDir::North;
+    FVector ControlVector;
 
     if (!CameraManagerGlobal) {
       CameraManagerGlobal = GetWorld ()->GetFirstPlayerController ()->PlayerCameraManager;
@@ -278,8 +319,11 @@ void UEightDirActorComponent::UpdateDisplayFlipbook (
 
     // BEEBE TODO: Remove?
     if (CameraManagerGlobal) {
+
+      ControlVector = GetOwner ()->GetActorLocation () - CameraManagerGlobal->GetCameraLocation ();
+      ControlRotation = ControlVector.Rotation ();
+
       // Rotate the display flipbook
-      ControlRotation = CameraManagerGlobal->GetCameraRotation ();
       DisplayFlipbook->SetWorldRotation (
         FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
       );
@@ -305,7 +349,6 @@ void UEightDirActorComponent::UpdateShadowFlipbook (
   bool ForceUpdate,
   float SpeedOverride
 ) {
-
   if (ShadowFlipbook && (ForceUpdate || ShadowFlipbook->WasRecentlyRendered (0.1f))) {
     FRotator ControlRotation;
     EEightDir ShadowFlipbookDirection = EEightDir::North;
@@ -323,14 +366,14 @@ void UEightDirActorComponent::UpdateShadowFlipbook (
         // Rotate the shadow flipbook
         ControlRotation = SunGlobal->GetActorRotation ();
         ShadowFlipbook->SetWorldRotation (FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f));
-        
+
         float Speed = SpeedOverride;
 
         if (SpeedOverride < 0.0f) {
           check (PrimitiveRootComponentGlobal);
           Speed = PrimitiveRootComponentGlobal->GetPhysicsLinearVelocity ().Size ();
         }
-        
+
         UpdateFlipbook (
           EEightDir::EightDirMax,
           GetFlipbookDirection (ControlRotation),
@@ -352,6 +395,7 @@ void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
     EEightDir ShadowFlipbookDirection = EEightDir::North;
     EEightDir DisplayFlipbookDirection = EEightDir::North;
     FRotator ControlRotation;
+    FVector ControlVector;
 
     // BEEBE TODO: Remove?
     if (!CameraManagerGlobal) {
@@ -359,8 +403,11 @@ void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
     }
 
     if (CameraManagerGlobal) {
+      
+      ControlVector = GetOwner ()->GetActorLocation () - CameraManagerGlobal->GetCameraLocation ();
+      ControlRotation = ControlVector.Rotation ();
+      
       // Rotate the display flipbook
-      ControlRotation = CameraManagerGlobal->GetCameraRotation ();
       DisplayFlipbook->SetWorldRotation (
         FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
       );
