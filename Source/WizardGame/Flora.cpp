@@ -13,6 +13,8 @@ AFlora::AFlora()
 {
   SetFloraState (EFloraState::Seedling);
   PrimaryActorTick.bCanEverTick = true;
+  
+  // Setup the root component
   CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent> (TEXT ("Root Component"));
   CapsuleComponent->InitCapsuleSize (34.0f, 88.0f);
   CapsuleComponent->SetCollisionProfileName (UCollisionProfile::Pawn_ProfileName);
@@ -118,4 +120,3 @@ void AFlora::Tick(float DeltaTime)
   Super::Tick (DeltaTime);
   CurrentStateComponentGlobal->UpdateDisplayAndShadowFlipbooks (true);
 }
-

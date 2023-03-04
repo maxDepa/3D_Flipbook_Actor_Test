@@ -96,10 +96,10 @@ protected:
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *MatureActorComponent;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks", meta = (Tags = "DisplayFlipbook"))
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UPaperFlipbookComponent *DisplayFlipbook;
 
-	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks", meta = (Tags = "ShadowFlipbook"))
+	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UPaperFlipbookComponent *ShadowFlipbook;
 
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Root Component")
