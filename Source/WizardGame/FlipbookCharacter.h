@@ -80,8 +80,13 @@ private:
 	UPROPERTY ()
 		UCharacterMovementComponent *CharacterMovementComponent;
 
-	bool IsAiming = false;
+	
+	bool bIsAiming = false;
 
+	bool bDidHit = false;
+
+	TObjectPtr<AActor> HitActorPtr = nullptr;
+	
 	APlayerCameraManager *LocalCameraManager;
 
 };

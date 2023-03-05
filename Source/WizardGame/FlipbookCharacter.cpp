@@ -99,7 +99,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
 void AFlipbookCharacter::Look (const FInputActionValue &Value) {
   FVector2D LookAxisVector = Value.Get<FVector2D> ();
 
-  if (!IsAiming) {
+  if (!bIsAiming) {
     if (Controller != nullptr) {
       AddControllerYawInput (LookAxisVector.X);
       AddControllerPitchInput (LookAxisVector.Y);
@@ -139,12 +139,12 @@ void AFlipbookCharacter::StopRunning (const FInputActionValue &Value) {
 }
 
 void AFlipbookCharacter::Aim (const FInputActionValue &Value) {
-  IsAiming = true;
+  bIsAiming = true;
   GetCharacterMovement ()->bOrientRotationToMovement = false;
 }
 
 void AFlipbookCharacter::StopAiming (const FInputActionValue &Value) {
-  IsAiming = false;
+  bIsAiming = false;
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 }
 
@@ -258,38 +258,38 @@ void AFlipbookCharacter::Tick (float DeltaTime) {
 
   EightDirActorComponent->UpdateShadowFlipbook (true);
 
-  if (IsAiming) {
+  if (bIsAiming) {
 
     // Test with capsule trace
     //
-    FVector Start = GetActorLocation ();
-    FVector End = Start + RootComponent->GetComponentRotation ().Vector () * 100000.0f;
-    float Radius = 50.0f;
-    float HalfAngle = FMath::DegreesToRadians (30.0f);
-    float Length = Radius / FMath::Tan (HalfAngle);
-    float HalfHeight = Length / 2.0f;
+    //FVector Start = GetActorLocation ();
+    //FVector End = Start + RootComponent->GetComponentRotation ().Vector () * 100000.0f;
+    //float Radius = 50.0f;
+    //float HalfAngle = FMath::DegreesToRadians (30.0f);
+    //float Length = Radius / FMath::Tan (HalfAngle);
+    //float HalfHeight = Length / 2.0f;
 
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
-    ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
+    //TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
+    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
 
-    TArray<FHitResult> HitResults;
-    bool bHit = UKismetSystemLibrary::CapsuleTraceMultiForObjects (
-      GetWorld (),
-      Start,
-      End,
-      Radius,
-      HalfHeight,
-      ObjectTypes,
-      false,
-      {},
-      EDrawDebugTrace::ForDuration,
-      HitResults,
-      false,
-      FLinearColor::Red,
-      FLinearColor::Red,
-      0.1f
-    );
+    //TArray<FHitResult> HitResults;
+    //bool bHit = UKismetSystemLibrary::CapsuleTraceMultiForObjects (
+    //  GetWorld (),
+    //  Start,
+    //  End,
+    //  Radius,
+    //  HalfHeight,
+    //  ObjectTypes,
+    //  false,
+    //  {},
+    //  EDrawDebugTrace::ForDuration,
+    //  HitResults,
+    //  false,
+    //  FLinearColor::Red,
+    //  FLinearColor::Red,
+    //  0.1f
+    //);
 
     // Test with sphere trace
     //
@@ -323,6 +323,65 @@ void AFlipbookCharacter::Tick (float DeltaTime) {
     // Test with line trace
     // 
     //DrawDebugLine (GetWorld (), Start, End, FColor::Red, false, -1.0f, 0, 5.0f);
+
+    FVector Start = GetActorLocation ();
+    FVector End = Start + RootComponent->GetComponentRotation ().Vector () * 100000.0f;
+    float Radius = 50.0f;
+
+    FCollisionQueryParams TraceParams;
+    TraceParams.bTraceComplex = false;
+    TraceParams.bReturnPhysicalMaterial = false;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
+    ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
+
+    FHitResult HitResult;
+    bool bHit = GetWorld ()->SweepSingleByObjectType (
+      HitResult,
+      Start,
+      End,
+      FQuat::Identity,
+      ObjectTypes,
+      FCollisionShape::MakeSphere (Radius),
+      TraceParams
+    );
+
+    if (bHit) {
+
+      // Check if the hit object has the "Enemy" tag
+      AActor *HitActor = HitResult.GetActor ();
+
+      //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Hit an Actor")));
+
+      if (HitActor && HitActor->Tags.Contains ("Enemy")) {
+
+        ////// Snap to the hit actor's location
+        //FVector NewLocation = HitResult.Location;
+        //NewLocation.Z += SnapHeightOffset;
+        //GetOwner ()->SetActorLocation (NewLocation);
+
+        //GEngine->AddOnScreenDebugMessage (-1, 2.0f, FColor::Yellow, FString::Printf (TEXT ("Actor has enemy tag")));
+
+        // Debug display the sweep path
+        DrawDebugLine (
+          GetWorld (),
+          Start,
+          HitResult.Location,
+          FColor::Green,
+          false, 
+          0.5f
+        );
+
+        bDidHit = true;
+        HitActorPtr = TObjectPtr<AActor> (HitActor);
+
+      } else {
+        bDidHit = false;
+      }
+    } else {
+      bDidHit = false;
+    }
   }
 }
 
