@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//
+// Copyright (C) Taylor Beebe - All Rights Reserved Unauthorized copying of this repository,
+// via any medium is strictly prohibited Proprietary and confidential 
+// 
+// Written by Taylor Beebe taylor.d.beebe@gmail.com, February 2023
+//
 
 #pragma once
 
@@ -135,11 +140,32 @@ public:
   // Sets default values for this component's properties
   UEightDirActorComponent ();
 
+  /**
+    Get the associated EEightDir enum value for the given Yaw value
+
+    @param Yaw: The Yaw value to use to determine the direction
+  **/
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     EEightDir GetDirection (
     float Yaw
     );
 
+  /**
+    Update the display flipbook to be perpendicular to the vector from the camera to the owner of
+    this component and the source flipbook of the display flipbook to be consistent with the direction
+    the owner is facing (unless ComponentRotationOverride is specified). This function also updates
+    the shadow flipbook to be perpendicular to the vector from the sun (or other directional light source)
+    to the owner of this component. This function also updates the shadow flipbook to be consistent with
+    the direction the owner is facing.
+
+    To save resources, the flipbooks will not be updated if they are not being rendered unless ForceUpdate
+    is true.
+
+    @param ForceUpdate                - If true, the flipbook will always be updated
+    @param SpeedOverride              - If specified, the flipbook speed will be set to this value
+    @param ComponentRotationOverride  - If specified, this rotation will be used instead of basing
+                                        the rotation on the owner's direction
+  **/
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void UpdateDisplayAndShadowFlipbooks (
     bool ForceUpdate = false,
@@ -147,6 +173,19 @@ public:
     FRotator ComponentRotationOverride = FRotator::ZeroRotator
     );
 
+  /**
+    Update the display flipbook to be perpendicular to the vector from the camera to the owner of
+    this component and the source flipbook of the display flipbook to be consistent with the direction
+    the owner is facing (unless ComponentRotationOverride is specified).
+
+    To save resources, this flipbook will not be updated if it is not being rendered unless ForceUpdate
+    is true.
+
+    @param ForceUpdate                - If true, the flipbook will always be updated
+    @param SpeedOverride              - If specified, the flipbook speed will be set to this value
+    @param ComponentRotationOverride  - If specified, this rotation will be used instead of basing
+                                        the rotation on the owner's direction
+  **/
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void UpdateDisplayFlipbook (
     bool ForceUpdate = false, 
@@ -154,23 +193,37 @@ public:
     FRotator ComponentRotationOverride = FRotator::ZeroRotator
     );
 
+  /**
+    Update the shadow flipbook to be perpendicular to the vector from the sun (or other
+    directional light source) to the owner of this component. This function also updates the
+    shadow flipbook to be consistent with the direction the owner is facing.
+
+    To save resources, this flipbook will not be updated if it is not being rendered unless ForceUpdate
+    is true.
+
+    @param ForceUpdate                - If true, the flipbook will always be updated
+    @param SpeedOverride              - If specified, the flipbook speed will be set to this value
+    @param ComponentRotationOverride  - If specified, this rotation will be used instead of basing
+                                        the rotation on the owner's direction
+  **/
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void UpdateShadowFlipbook (
     bool ForceUpdate = false,
     float SpeedOverride = -1.0f
     );
 
-  //UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
-  //  void LoadFlipbooksFromDirectory (
-  //  const FString &Directory,
-  //  bool stationary,
-  //  bool slow,
-  //  bool fast,
-  //  bool IsEightDir,
-  //  bool TwoFlipbookRotation = false
-  //  );
+  /**
+    Setup all the defaults and globals for the attachment based on the input parameters
 
-  // Indirection for the USceneCompoenent SetupAttachment function
+    @param FlipbookDirectory          - The directory from which to load the flipbooks
+    @param HasStationaryFlipbooks     - True if the component has stationary animations
+    @param HasSlowFlipbooks           - True if the component has slow animations
+    @param HasFastFlipbooks           - True if the component has fast animations
+    @param IsEightDir                 - True if the component has eight directions (otherwise four)
+    @param IsTwoFlipbookRotation      - True if the component uses two flipbooks for rotation
+    @param CastsShadow                - True if the component casts shadows
+    @param SlowSpeed                  - The speed up to which the slow animations should be played
+  **/
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void SetupAttachment (
     const FString &FlipbookDirectory,
@@ -183,10 +236,15 @@ public:
     float SlowSpeed = -1.0f
     );
 
+  // Array of the basic flipbooks indexable using the GET_FLIPBOOK_INDEX macro
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animations")
     TArray<UPaperFlipbook *> BasicFlipbooks;
 
 protected:
+
+  /**
+    Run when the game starts or when spawned
+  **/
   virtual void BeginPlay () override;
 
 private:
@@ -227,21 +285,38 @@ private:
   // Reference to the shadow flipbook component
   TObjectPtr <UPaperFlipbookComponent> ShadowFlipbook;
 
-  // Update which flipbook is displayed based on the current speed and direction
+  /**
+    Update the display and/or shadow flipbooks based on the input EEightDir values and speed
+
+    @param DisplayFlipboookDirection  - The direction used to set the display flipbook
+    @param ShadowFlipboookDirection   - The direction used to set the shadow flipbook
+    @param Speed                      - The speed used to set the flipbooks
+  **/
   void UpdateFlipbook (
     EEightDir DisplayFlipboookDirection,
     EEightDir ShadowFlipboookDirection,
     float Speed
   );
 
-  // Given the rotation of the component and the rotation of some control, return the flipbook facing the
-  // dimensionally correct direction
+  /**
+    Given a control rotation return the normalized relative rotation based on the owners rotation.
+    If ComponentRotationOverride is specified, this rotation will be used instead of basing
+    the rotation on the owner's direction.
+
+    @param ControlRotation            - The control rotation to use
+    @param ComponentRotationOverride  - If specified, this rotation will be used instead of basing
+                                        the rotation on the owner's direction
+  **/
   EEightDir GetFlipbookDirection (
     FRotator ControlRotation,
     FRotator ComponentRotationOverride = FRotator::ZeroRotator
   );
 
+  /**
+    Get the closest cardinal rotation based on the input Yaw
 
+    @param Yaw                        - The Yaw to use
+  **/
   float GetClosestRotation (float Yaw);
 
 };

@@ -1,9 +1,15 @@
+//
+// Copyright (C) Taylor Beebe - All Rights Reserved Unauthorized copying of this repository,
+// via any medium is strictly prohibited Proprietary and confidential 
+// 
+// Written by Taylor Beebe taylor.d.beebe@gmail.com, February 2023
+//
 
 #include "FlipbookActor.h"
 #include "Components/CapsuleComponent.h"
 #include "PaperFlipbookComponent.h"
 
-// Sets default values
+// AFlipbookActor constructor
 AFlipbookActor::AFlipbookActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -38,13 +44,19 @@ AFlipbookActor::AFlipbookActor()
 
 }
 
-// Called when the game starts or when spawned
+/**
+  Run when the game starts or when spawned
+**/
 void AFlipbookActor::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-// Called every frame
+/**
+  Called every frame
+
+  @param DeltaTime: The time since the last frame
+**/
 void AFlipbookActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

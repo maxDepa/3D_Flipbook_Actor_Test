@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//
+// Copyright (C) Taylor Beebe - All Rights Reserved Unauthorized copying of this repository,
+// via any medium is strictly prohibited Proprietary and confidential 
+// 
+// Written by Taylor Beebe taylor.d.beebe@gmail.com, February 2023
+//
 
 #pragma once
 
@@ -11,6 +16,7 @@ class UEightDirActorComponent;
 class UPaperFlipbookComponent;
 class UCapsuleComponent;
 
+// Possible states for some flora
 UENUM (BlueprintType)
 enum class EFloraState : uint8 {
 	Destroyed,
@@ -20,6 +26,7 @@ enum class EFloraState : uint8 {
 	Mature
 };
 
+// Strings for the flora states enum
 const FString FloraStateStrings[] = {
 	TEXT ("Destroyed"),
 	TEXT ("Seedling"),
@@ -36,32 +43,76 @@ class WIZARDGAME_API AFlora : public AActor
 public:	
 	AFlora();
 
+	/**
+		Called every frame
+
+		@param DeltaTime: The time since the last frame
+	**/
 	virtual void Tick (float DeltaTime) override;
 
+	/**
+		Run when the game starts or when spawned
+	**/
 	virtual void BeginPlay () override;
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Returns if the flora instance requires water
+
+		@retval true - The flora instance requires water
+		@retval false - The flora instance does not require water
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		bool RequiresWater ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Returns if the flora instance can be eaten
+
+		@retval true - The flora instance can be eaten
+		@retval false - The flora instance cannot be eaten
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		bool IsEdible ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Returns how many days the flora instance takes to grow from seedling to mature
+
+		@retval int - The number of days to grow
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		int GetNumDaysToGrow ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Get the current flora state enum value
+
+		@retval EFloraState - The current flora state
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		EFloraState GetFloraState ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Set the current flora state to the input NewState
+
+		@param NewState - The new flora state
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		void SetFloraState (EFloraState NewState);
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Increment the flora state enum
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		void Grow ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Decrement the flora state enum
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		void Shrink ();
 
-	UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
+	/**
+		Destroy the flora state instance
+	**/
+	UFUNCTION (BlueprintCallable, Category = "Flora Functions")
 		void Destroy ();
 
 	//UFUNCTION (BlueprintCallable, Category = "Flora Interface Functions")
@@ -72,36 +123,51 @@ public:
 
 protected:
 
+	// The number of days it takes to grow from seedling to mature
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flora Interface Variables")
 		int NumDaysToGrow;
 
+	// The current state of the flora instance
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flora Interface Variables")
 		EFloraState CurrentState;
 
+	// If the flor instance requires water
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flora Interface Variables")
 		bool bRequiresWater;
 
+	// If the flora instance can be eaten
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flora Interface Variables")
 		bool bIsEdible;
 
+	// Component which handles the functionality for updating the display and shadow flipbooks
+	// for the Seedling state
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *SeedlingActorComponent;
 
+	// Component which handles the functionality for updating the display and shadow flipbooks
+	// for the Sapling state
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *SaplingActorComponent;
 
+	// Component which handles the functionality for updating the display and shadow flipbooks
+	// for the Young state
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *YoungActorComponent;
 
+	// Component which handles the functionality for updating the display and shadow flipbooks
+	// for the Mature state
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UEightDirActorComponent *MatureActorComponent;
 
+	// The display flipbook for the flora instance
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UPaperFlipbookComponent *DisplayFlipbook;
 
+	// The shadow flipbook for the flora instance
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Flipbooks")
 		UPaperFlipbookComponent *ShadowFlipbook;
 
+	// The root and capsule component for the flora instance
 	UPROPERTY (EditAnywhere, BlueprintReadWrite, Category = "Root Component")
 		UCapsuleComponent *CapsuleComponent;
 

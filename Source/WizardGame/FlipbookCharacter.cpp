@@ -1,4 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//
+// Copyright (C) Taylor Beebe - All Rights Reserved Unauthorized copying of this repository,
+// via any medium is strictly prohibited Proprietary and confidential 
+// 
+// Written by Taylor Beebe taylor.d.beebe@gmail.com, February 2023
+//
 
 #include "FlipbookCharacter.h"
 #include "Camera/PlayerCameraManager.h"
@@ -19,7 +24,7 @@
 // Example screen space debug string
 // GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Check it: %s"), *SomeString);
 
-// Sets default values
+// AFlipbookCharacter constructor
 AFlipbookCharacter::AFlipbookCharacter () {
 
   // Setup the display flipbook
@@ -40,6 +45,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   ShadowFlipbook->bCastHiddenShadow = true;
   ShadowFlipbook->ComponentTags = {TEXT ("ShadowFlipbook")};
 
+  // Setup the character movement
   FlipbookCharacterMaxRunSpeed = 450.0f;
   FlipbookCharacterMaxWalkSpeed = 200.0f;
   GetCharacterMovement ()->MaxAcceleration = FLT_MAX;
@@ -47,9 +53,11 @@ AFlipbookCharacter::AFlipbookCharacter () {
   GetCharacterMovement ()->RotationRate = FRotator (0.0f, 0.0f, FLT_MAX);
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
+  // Setup the eight direction actor component
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
   EightDirActorComponent->SetupAttachment (TEXT ("/Game/PixelArt/CharacterPixelArt/Flipbooks"), true, true, true, true, false, true, FlipbookCharacterMaxWalkSpeed);
 
+  // Setup the enhanced input component
   static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextAsset (TEXT ("/Game/Input/IMC_TaylorCharacter.IMC_TaylorCharacter"));
   if (InputContextAsset.Succeeded ()) {
     InputMappingContext = InputContextAsset.Object;
@@ -96,21 +104,36 @@ AFlipbookCharacter::AFlipbookCharacter () {
 
 }
 
+/**
+  Gets the rotator of the vector drawn from the hit actor's location to this
+  character's location. This should only be called if HitActorPtr is not null.
+
+  @retval The override rotation to use for the character's display flipbook
+**/
 FRotator AFlipbookCharacter::GetOverrideRotation () {
   FVector OverrideVector = HitActorPtr->GetActorLocation () - GetActorLocation ();
   return OverrideVector.Rotation ();
 }
 
+/**
+  Handles the "look" input (ex. moving the right stick)
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::Look (const FInputActionValue &Value) {
   FVector2D LookAxisVector = Value.Get<FVector2D> ();
 
+  // If the player is not aiming, then rotate the character
   if (!bIsAiming) {
     if (Controller != nullptr) {
       AddControllerYawInput (LookAxisVector.X);
       AddControllerPitchInput (LookAxisVector.Y);
     }
-  } else {
+  } 
+  // If the player is aiming, then rotate the character's display flipbook
+  else {
 
+    // If the vector is not large enough, just return
     if (LookAxisVector.Size () < 0.5f) {
       return;
     }
@@ -130,9 +153,11 @@ void AFlipbookCharacter::Look (const FInputActionValue &Value) {
     }
     Yaw -= 180.0f;
 
+    // Set the rotation of the character's root component
     RootComponent->SetWorldRotation (FRotator (0.0f, Yaw, 0.0f));
   }
 
+  // Update the character's display flipbook
   EightDirActorComponent->UpdateDisplayFlipbook (
     true,
     -1.0f,
@@ -141,24 +166,45 @@ void AFlipbookCharacter::Look (const FInputActionValue &Value) {
 
 }
 
+/**
+  Handles the input which transitions the character from walking to running
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::Run (const FInputActionValue &Value) {
   GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxRunSpeed;
 }
 
+/**
+  Handles the release of input which transitions the character from walking to running
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::StopRunning (const FInputActionValue &Value) {
   GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxWalkSpeed;
 }
 
+/**
+  Handle the aim input (ex. pressing the left trigger)
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::Aim (const FInputActionValue &Value) {
   bIsAiming = true;
   bDidHit = false;
   GetCharacterMovement ()->bOrientRotationToMovement = false;
 }
 
+/**
+  Handle the release of the aim input (ex. releasing the left trigger)
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::StopAiming (const FInputActionValue &Value) {
   bIsAiming = false;
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
+  // Update the character's display flipbook if we were previously aiming at an actor
   if (bDidHit && HitActorPtr) {
     EightDirActorComponent->UpdateDisplayFlipbook (true, -1.0f, GetOverrideRotation ());
   }
@@ -166,10 +212,15 @@ void AFlipbookCharacter::StopAiming (const FInputActionValue &Value) {
   bDidHit = false;
 }
 
+/**
+  Handles the movement input
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::Move (const FInputActionValue &Value) {
   const FVector2D Vector = Value.Get<FVector2D> ();
 
-  if (Controller != nullptr) {
+  if (Controller) {
 
     if (LocalCameraManager == nullptr) {
       return;
@@ -189,6 +240,8 @@ void AFlipbookCharacter::Move (const FInputActionValue &Value) {
     AddMovementInput (ForwardDirection, Vector.Y);
     AddMovementInput (RightDirection, Vector.X);
   }
+
+  // Update the character's display flipbook
   EightDirActorComponent->UpdateDisplayFlipbook (
     true,
     -1.0f,
@@ -196,7 +249,14 @@ void AFlipbookCharacter::Move (const FInputActionValue &Value) {
   );
 }
 
+/**
+  Handles the release of the movement input
+
+  @param Value: The input value
+**/
 void AFlipbookCharacter::StopMoving (const FInputActionValue &Value) {
+
+  // Update the character's display flipbook
   EightDirActorComponent->UpdateDisplayFlipbook (
     true,
     0.0f,
@@ -204,7 +264,9 @@ void AFlipbookCharacter::StopMoving (const FInputActionValue &Value) {
   );
 }
 
-// Define a function to spawn an actor at a given location and rotation
+/**
+  Spawn actors for testing
+**/
 void AFlipbookCharacter::SpawnActors () {
 
   // Get the world pointer
@@ -255,7 +317,9 @@ void AFlipbookCharacter::SpawnActors () {
   }
 }
 
-// Called when the game starts or when spawned
+/**
+  Run when the game starts or when spawned
+**/
 void AFlipbookCharacter::BeginPlay () {
   Super::BeginPlay ();
 
@@ -265,6 +329,7 @@ void AFlipbookCharacter::BeginPlay () {
     UE_LOG (LogTemp, Warning, TEXT ("Unable to initialize LocalCameraManager"));
   }
 
+  // Add the input mapping context
   if (APlayerController *PlayerController = Cast<APlayerController> (GetController ())) {
     if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem> (PlayerController->GetLocalPlayer ())) {
       UE_LOG (LogTemp, Warning, TEXT ("Adding mapping context"));
@@ -272,97 +337,47 @@ void AFlipbookCharacter::BeginPlay () {
     }
   }
 
+  // Set the character's max walk speed
   GetCharacterMovement ()->MaxWalkSpeed = FlipbookCharacterMaxWalkSpeed;
 
+  // Spawn the test actors
   SpawnActors ();
-  EightDirActorComponent->UpdateDisplayAndShadowFlipbooks (true);
+
+  // Update the character's display and shadow flipbooks (force update)
+  EightDirActorComponent->UpdateDisplayAndShadowFlipbooks (true, 0.0f);
 }
 
-// Called every frame
+/**
+  Called every frame
+
+  @param DeltaTime: The time since the last frame
+ **/
 void AFlipbookCharacter::Tick (float DeltaTime) {
   Super::Tick (DeltaTime);
 
+  // BEEBE TODO: Does this need to be a forced update?
   EightDirActorComponent->UpdateShadowFlipbook (true);
 
   if (bIsAiming) {
 
-    // Test with capsule trace
-    //
-    //FVector Start = GetActorLocation ();
-    //FVector End = Start + RootComponent->GetComponentRotation ().Vector () * 100000.0f;
-    //float Radius = 50.0f;
-    //float HalfAngle = FMath::DegreesToRadians (30.0f);
-    //float Length = Radius / FMath::Tan (HalfAngle);
-    //float HalfHeight = Length / 2.0f;
-
-    //TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
-    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
-
-    //TArray<FHitResult> HitResults;
-    //bool bHit = UKismetSystemLibrary::CapsuleTraceMultiForObjects (
-    //  GetWorld (),
-    //  Start,
-    //  End,
-    //  Radius,
-    //  HalfHeight,
-    //  ObjectTypes,
-    //  false,
-    //  {},
-    //  EDrawDebugTrace::ForDuration,
-    //  HitResults,
-    //  false,
-    //  FLinearColor::Red,
-    //  FLinearColor::Red,
-    //  0.1f
-    //);
-
-    // Test with sphere trace
-    //
-    //float Radius = 50.0f;
-    //float HalfAngle = FMath::DegreesToRadians (30.0f);
-    //// Create an array of object types to trace
-    //TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
-    //ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
-
-    //// Create an array to store the hit results
-    //TArray<FHitResult> OutHits;
-
-    //TArray<AActor *> ActorsToIgnore;
-
-    //TArray<FHitResult> HitResults;
-    //// Perform the sphere trace
-    //bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects (
-    //	GetWorld (),
-    //	Start,
-    //	End,
-    //	Radius,
-    //	ObjectTypes,
-    //	true,
-    //	ActorsToIgnore,
-    //	EDrawDebugTrace::ForDuration,
-    //	OutHits,
-    //	true
-    //);
-
-    // Test with line trace
-    // 
-    //DrawDebugLine (GetWorld (), Start, End, FColor::Red, false, -1.0f, 0, 5.0f);
-
+    // Get the start and end of the trace
     FVector Start = GetActorLocation ();
     FVector End = Start + RootComponent->GetComponentRotation ().Vector () * 100000.0f;
     float Radius = 50.0f;
 
+    // Define the trace parameters
     FCollisionQueryParams TraceParams;
     TraceParams.bTraceComplex = false;
     TraceParams.bReturnPhysicalMaterial = false;
 
+    // Define the object types to trace against
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldStatic));
     ObjectTypes.Add (UEngineTypes::ConvertToObjectType (ECollisionChannel::ECC_WorldDynamic));
 
     FHitResult HitResult;
+
+    // Perform the trace
     bool bHit = GetWorld ()->SweepSingleByObjectType (
       HitResult,
       Start,
@@ -374,22 +389,14 @@ void AFlipbookCharacter::Tick (float DeltaTime) {
     );
 
     if (bHit) {
-
-      // Check if the hit object has the "Enemy" tag
+      // Get the hit actor
       AActor *HitActor = HitResult.GetActor ();
-
       //GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Hit an Actor")));
 
       if (HitActor && HitActor->Tags.Contains ("Enemy")) {
 
-        ////// Snap to the hit actor's location
-        //FVector NewLocation = HitResult.Location;
-        //NewLocation.Z += SnapHeightOffset;
-        //GetOwner ()->SetActorLocation (NewLocation);
-
-        //GEngine->AddOnScreenDebugMessage (-1, 2.0f, FColor::Yellow, FString::Printf (TEXT ("Actor has enemy tag")));
-
-        // Debug display the sweep path
+        // Draw a line between the start of the trace and the hit location
+        // BEEBE TODO: Remove when done debugging
         DrawDebugLine (
           GetWorld (),
           Start,
@@ -411,7 +418,11 @@ void AFlipbookCharacter::Tick (float DeltaTime) {
   }
 }
 
-// Called to bind functionality to input
+/**
+  Initializes the player input component
+
+  @param PlayerInputComponent: The player input component to initialize
+**/
 void AFlipbookCharacter::SetupPlayerInputComponent (UInputComponent *PlayerInputComponent) {
   Super::SetupPlayerInputComponent (PlayerInputComponent);
 
