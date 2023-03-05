@@ -257,10 +257,14 @@ EEightDir UEightDirActorComponent::GetDirection (
 }
 
 EEightDir UEightDirActorComponent::GetFlipbookDirection (
-  FRotator ControlRotation
+  FRotator ControlRotation,
+  FRotator ComponentRotationOverride
 ) {
   return GetDirection (
-    UKismetMathLibrary::NormalizedDeltaRotator (RootComponentGlobal->GetComponentRotation (), ControlRotation).Yaw
+    UKismetMathLibrary::NormalizedDeltaRotator (
+    ComponentRotationOverride == FRotator::ZeroRotator ? RootComponentGlobal->GetComponentRotation () : ComponentRotationOverride,
+    ControlRotation
+  ).Yaw
   );
 }
 
@@ -306,7 +310,8 @@ float UEightDirActorComponent::GetClosestRotation (float Yaw) {
 
 void UEightDirActorComponent::UpdateDisplayFlipbook (
   bool ForceUpdate,
-  float SpeedOverride
+  float SpeedOverride,
+  FRotator ComponentRotationOverride
 ) {
   if (DisplayFlipbook && (ForceUpdate || DisplayFlipbook->WasRecentlyRendered (0.1f))) {
     FRotator ControlRotation;
@@ -336,11 +341,10 @@ void UEightDirActorComponent::UpdateDisplayFlipbook (
       }
 
       UpdateFlipbook (
-        GetFlipbookDirection (ControlRotation),
+        GetFlipbookDirection (ControlRotation, ComponentRotationOverride),
         EEightDir::EightDirMax,
         Speed
       );
-
     }
   }
 }
@@ -389,7 +393,8 @@ void UEightDirActorComponent::UpdateShadowFlipbook (
 
 void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
   bool ForceUpdate,
-  float SpeedOverride
+  float SpeedOverride,
+  FRotator ComponentRotationOverride
 ) {
   if (DisplayFlipbook && (ForceUpdate || DisplayFlipbook->WasRecentlyRendered (0.1f))) {
     EEightDir ShadowFlipbookDirection = EEightDir::North;
@@ -411,7 +416,11 @@ void UEightDirActorComponent::UpdateDisplayAndShadowFlipbooks (
       DisplayFlipbook->SetWorldRotation (
         FRotator (0.0f, ControlRotation.Yaw + FLIPBOOK_ROTATIONAL_OFFSET, 0.0f)
       );
-      DisplayFlipbookDirection = GetFlipbookDirection (ControlRotation);
+
+      DisplayFlipbookDirection = GetFlipbookDirection (
+        ControlRotation, 
+        ComponentRotationOverride
+      );
     }
 
     if (ShadowFlipbook && bCastShadowGlobal) {

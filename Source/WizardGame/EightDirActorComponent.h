@@ -143,13 +143,15 @@ public:
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void UpdateDisplayAndShadowFlipbooks (
     bool ForceUpdate = false,
-    float SpeedOverride = -1.0f
+    float SpeedOverride = -1.0f,
+    FRotator ComponentRotationOverride = FRotator::ZeroRotator
     );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
     void UpdateDisplayFlipbook (
     bool ForceUpdate = false, 
-    float SpeedOverride = -1.0f
+    float SpeedOverride = -1.0f,
+    FRotator ComponentRotationOverride = FRotator::ZeroRotator
     );
 
   UFUNCTION (BlueprintCallable, Category = "Eight Dir Actor Component Functions")
@@ -234,7 +236,10 @@ private:
 
   // Given the rotation of the component and the rotation of some control, return the flipbook facing the
   // dimensionally correct direction
-  EEightDir GetFlipbookDirection (FRotator ControlRotation);
+  EEightDir GetFlipbookDirection (
+    FRotator ControlRotation,
+    FRotator ComponentRotationOverride = FRotator::ZeroRotator
+  );
 
 
   float GetClosestRotation (float Yaw);

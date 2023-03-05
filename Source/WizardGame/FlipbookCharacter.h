@@ -80,6 +80,7 @@ private:
 	UPROPERTY ()
 		UCharacterMovementComponent *CharacterMovementComponent;
 
+	FRotator GetOverrideRotation ();
 	
 	bool bIsAiming = false;
 

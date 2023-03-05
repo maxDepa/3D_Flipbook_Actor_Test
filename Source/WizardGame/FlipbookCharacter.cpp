@@ -28,7 +28,7 @@ AFlipbookCharacter::AFlipbookCharacter () {
   DisplayFlipbook->CastShadow = false;
   DisplayFlipbook->SetRelativeScale3D (FVector (2.0f, 2.0f, 2.0f));
   DisplayFlipbook->SetRelativeLocation (FVector (0.0f, 0.0f, -30.0f));
-  DisplayFlipbook->ComponentTags = { TEXT ("DisplayFlipbook") };
+  DisplayFlipbook->ComponentTags = {TEXT ("DisplayFlipbook")};
 
   // Setup the shadow flipbook
   ShadowFlipbook = CreateDefaultSubobject<UPaperFlipbookComponent> (TEXT ("EightDirShadowFlipbook"));
@@ -38,13 +38,13 @@ AFlipbookCharacter::AFlipbookCharacter () {
   ShadowFlipbook->bHiddenInGame = true;
   ShadowFlipbook->CastShadow = false;
   ShadowFlipbook->bCastHiddenShadow = true;
-  ShadowFlipbook->ComponentTags = { TEXT ("ShadowFlipbook") };
+  ShadowFlipbook->ComponentTags = {TEXT ("ShadowFlipbook")};
 
   FlipbookCharacterMaxRunSpeed = 450.0f;
   FlipbookCharacterMaxWalkSpeed = 200.0f;
   GetCharacterMovement ()->MaxAcceleration = FLT_MAX;
   GetCharacterMovement ()->BrakingDecelerationWalking = FLT_MAX;
-  GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, FLT_MAX);
+  GetCharacterMovement ()->RotationRate = FRotator (0.0f, 0.0f, FLT_MAX);
   GetCharacterMovement ()->bOrientRotationToMovement = true;
 
   EightDirActorComponent = CreateDefaultSubobject<UEightDirActorComponent> (TEXT ("EightDirActorComponent"));
@@ -96,6 +96,11 @@ AFlipbookCharacter::AFlipbookCharacter () {
 
 }
 
+FRotator AFlipbookCharacter::GetOverrideRotation () {
+  FVector OverrideVector = HitActorPtr->GetActorLocation () - GetActorLocation ();
+  return OverrideVector.Rotation ();
+}
+
 void AFlipbookCharacter::Look (const FInputActionValue &Value) {
   FVector2D LookAxisVector = Value.Get<FVector2D> ();
 
@@ -127,7 +132,13 @@ void AFlipbookCharacter::Look (const FInputActionValue &Value) {
 
     RootComponent->SetWorldRotation (FRotator (0.0f, Yaw, 0.0f));
   }
-  EightDirActorComponent->UpdateDisplayFlipbook (true, 0.0f);
+
+  EightDirActorComponent->UpdateDisplayFlipbook (
+    true,
+    -1.0f,
+    (bDidHit && bIsAiming && HitActorPtr) ? GetOverrideRotation () : FRotator::ZeroRotator
+  );
+
 }
 
 void AFlipbookCharacter::Run (const FInputActionValue &Value) {
@@ -140,12 +151,19 @@ void AFlipbookCharacter::StopRunning (const FInputActionValue &Value) {
 
 void AFlipbookCharacter::Aim (const FInputActionValue &Value) {
   bIsAiming = true;
+  bDidHit = false;
   GetCharacterMovement ()->bOrientRotationToMovement = false;
 }
 
 void AFlipbookCharacter::StopAiming (const FInputActionValue &Value) {
   bIsAiming = false;
   GetCharacterMovement ()->bOrientRotationToMovement = true;
+
+  if (bDidHit && HitActorPtr) {
+    EightDirActorComponent->UpdateDisplayFlipbook (true, -1.0f, GetOverrideRotation ());
+  }
+
+  bDidHit = false;
 }
 
 void AFlipbookCharacter::Move (const FInputActionValue &Value) {
@@ -171,11 +189,19 @@ void AFlipbookCharacter::Move (const FInputActionValue &Value) {
     AddMovementInput (ForwardDirection, Vector.Y);
     AddMovementInput (RightDirection, Vector.X);
   }
-  EightDirActorComponent->UpdateDisplayFlipbook ();
+  EightDirActorComponent->UpdateDisplayFlipbook (
+    true,
+    -1.0f,
+    (bDidHit && bIsAiming && HitActorPtr) ? GetOverrideRotation () : FRotator::ZeroRotator
+  );
 }
 
 void AFlipbookCharacter::StopMoving (const FInputActionValue &Value) {
-  EightDirActorComponent->UpdateDisplayFlipbook (true, 0.0f);
+  EightDirActorComponent->UpdateDisplayFlipbook (
+    true,
+    0.0f,
+    (bDidHit && bIsAiming && HitActorPtr) ? GetOverrideRotation () : FRotator::ZeroRotator
+  );
 }
 
 // Define a function to spawn an actor at a given location and rotation
@@ -369,7 +395,7 @@ void AFlipbookCharacter::Tick (float DeltaTime) {
           Start,
           HitResult.Location,
           FColor::Green,
-          false, 
+          false,
           0.5f
         );
 
